@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulation Dataset — 4th Koh Young AI Contest</title>
+<style>
+
+:root {
+  --primary:#1a73e8; --primary-light:#e8f0fe;
+  --accent:#e67e00; --accent-light:#fff3e0;
+  --green:#0d904f; --green-light:#e6f4ea;
+  --red:#d93025; --red-light:#fce8e6;
+  --purple:#7b1fa2; --purple-light:#f3e5f5;
+  --bg:#f8f9fa; --card:#ffffff; --text:#202124; --text2:#5f6368;
+  --border:#dadce0;
+  --shadow:0 1px 3px rgba(0,0,0,0.12),0 1px 2px rgba(0,0,0,0.08);
+  --shadow-hover:0 4px 12px rgba(0,0,0,0.15);
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+.hero{background:#fff;color:var(--text);padding:0;text-align:left;position:relative;overflow:hidden;min-height:180px;display:flex;align-items:center}
+.hero-bg{position:absolute;top:0;left:0;height:100%;z-index:0;padding:20px}
+.hero-bg img{height:100%;width:auto}
+.hero-content{position:relative;z-index:1;width:100%;padding:36px 0 28px}
+.hero .logo-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;justify-content:flex-end;padding-right:40px}
+.hero .logo-row img{height:32px}
+.hero h1{font-size:2rem;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;text-align:center}
+.hero .subtitle{font-size:1.05rem;color:var(--text2);text-align:center}
+.hero .badge-row{display:none}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.section{padding:48px 0}
+.section-title{font-size:1.6rem;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.section-title .num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-size:.95rem;font-weight:800;color:#fff;flex-shrink:0}
+.section-desc{color:var(--text2);margin-bottom:28px;font-size:.95rem}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;margin-bottom:20px;border:1px solid var(--border);transition:box-shadow .2s,transform .2s}
+.card:hover{box-shadow:var(--shadow-hover);transform:translateY(-1px)}
+.card h3{font-size:1.1rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .icon{font-size:1.3rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.ct-table{width:100%;border-collapse:separate;border-spacing:0;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin:20px 0}
+.ct-table th{background:var(--primary);color:#fff;padding:14px 16px;text-align:left;font-size:.85rem;font-weight:700}
+.ct-table td{padding:14px 16px;border-bottom:1px solid var(--border);font-size:.88rem;vertical-align:top}
+.ct-table tr:last-child td{border-bottom:none}
+.ct-table tr:nth-child(even) td{background:#f8f9fa}
+.ct-table .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:700;margin-right:4px}
+.callout{border-radius:10px;padding:16px 20px;margin:16px 0;font-size:.9rem;display:flex;gap:12px;align-items:flex-start}
+.callout .ci{font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.callout-info{background:var(--primary-light);border:1px solid #b3d4fc}
+.callout-warn{background:var(--accent-light);border:1px solid #ffd699}
+.callout-new{background:var(--green-light);border:1px solid #a8dab5}
+.code-block{background:#1e1e1e;color:#d4d4d4;padding:14px;border-radius:8px;font-family:'Fira Code',monospace;font-size:.8rem;line-height:1.7;overflow-x:auto;margin:12px 0;white-space:pre}
+.footer{background:#263238;color:rgba(255,255,255,.7);padding:24px 0;text-align:center;font-size:.82rem}
+svg text{font-family:inherit}
+
+/* Language toggle */
+.lang-toggle{position:fixed;top:12px;right:16px;z-index:9999;display:flex;gap:0;border-radius:6px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:sans-serif}
+.lang-toggle button{border:none;padding:7px 16px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s}
+.lang-toggle button.active{background:#1a73e8;color:#fff}
+.lang-toggle button:not(.active){background:#fff;color:#555}
+.lang-toggle button:not(.active):hover{background:#f0f0f0}
+.lang-ko{display:none}
+
+</style>
+</head>
+<body>
+
+<div class="lang-toggle" id="langToggle">
+  <button onclick="setLang('en')" class="active" id="btn-en">EN</button>
+  <button onclick="setLang('ko')" id="btn-ko">KR</button>
+</div>
+<script>
+function setLang(lang){
+  document.querySelector('.lang-en').style.display=lang==='en'?'block':'none';
+  document.querySelector('.lang-ko').style.display=lang==='ko'?'block':'none';
+  document.getElementById('btn-en').className=lang==='en'?'active':'';
+  document.getElementById('btn-ko').className=lang==='ko'?'active':'';
+  try{localStorage.setItem('ipo-lang',lang)}catch(e){}
+}
+document.addEventListener('DOMContentLoaded',function(){try{var saved=localStorage.getItem('ipo-lang');if(saved==='ko')setLang('ko')}catch(e){}})
+</script>
+
+
+<div class="lang-en">
+<div class="hero">
+  <div class="hero-bg"><img src="ky_logo.png" alt="Koh Young Technology"></div>
+  <div class="hero-content">
+    <div class="container">
+      <h1>Simulation Dataset</h1>
+      <div class="subtitle">4th Koh Young AI Contest &mdash; ICCAS 2026</div>
+    </div>
+  </div>
+</div>
+
+
+<div style="background:#fff;border-bottom:2px solid #e0e0e0;padding:8px 0;text-align:center;font-size:.85rem;position:sticky;top:0;z-index:999">
+  <div class="container" style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">
+    <a href="ICCAS_2026_CONTEST_RULES.html" class="nav-link" data-doc="Rules" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Rules ★</a>
+    <a href="ICCAS_2026_CONTEST_DATA_DESCRIPTION.html" class="nav-link" data-doc="Data Description" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#fff;background:#1a73e8;transition:all .2s">Data Description</a>
+    <a href="ICCAS_2026_CONTEST_GUIDE.html" class="nav-link" data-doc="Guide" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Guide</a>
+    <a href="ICCAS_2026_CONTEST_TUTORIAL.html" class="nav-link" data-doc="Tutorial" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Tutorial</a>
+    <a href="https://github.com/iccas2026-kohyoung/contest" class="nav-link" target="_blank" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">GitHub ↗</a>
+  </div>
+</div>
+
+<div style="background:#e8f0fe;border:1px solid #c2d7f2;border-radius:8px;padding:10px 16px;margin:12px auto;max-width:920px;font-size:.85rem;text-align:center">
+  &#x1F4D8; This is a supplementary document. For official contest rules, see <a href="ICCAS_2026_CONTEST_RULES.html" style="color:#1a73e8;font-weight:700">Contest Rules ★</a>
+</div>
+
+<!-- 1. Dataset Overview -->
+<div class="section" id="s1">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--primary)">1</span> Dataset Overview</div>
+    <div class="section-desc">Each scenario folder contains the PCB component layout, equipment parameters, and step region information. The solver reads these files to optimize FOV placement.</div>
+
+    <div class="card">
+      <h3><span class="icon">&#x1F4C1;</span> Folder Structure</h3>
+      <div class="code-block">simulation_data/
+  S00_sparse_fast_001/          <span style="color:#6A9955"># scenario_type_instance_number</span>
+  S00_sparse_fast_002/
+  S00_sparse_fast_003/
+  S01_sparse_slow_001/
+  ...
+  S07_big_slow_012/             <span style="color:#6A9955"># 96 folders total (8 scenarios × 12)</span>
+
+Each folder contains:
+  input_component.csv           <span style="color:#6A9955"># Component list (position, type, inspection time)</span>
+  input_size.csv                <span style="color:#6A9955"># PCB/FOV dimensions</span>
+  input_parameter.csv           <span style="color:#6A9955"># Equipment parameters (capture, recon, gantry speed)</span>
+  input_step_region.csv         <span style="color:#6A9955"># Step region coordinates</span>
+  &lt;solver&gt;/                     <span style="color:#6A9955"># Per-solver output subfolder (e.g. ky/, greedy/)</span>
+    output_fov.csv              <span style="color:#6A9955"># Solver output (FOV placement result)</span>
+    result.html                 <span style="color:#6A9955"># Interactive viewer (3_view.py)</span></div>
+    </div>
+
+    <!-- Scenario Matrix -->
+    <div class="card">
+      <h3><span class="icon">&#x1F3AF;</span> Scenario Type Matrix (8 Types &times; 12 = 96)</h3>
+      <table class="ct-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Layout Type</th><th>Recon Time</th><th>Components</th><th>Large Component %</th><th>Key Test Point</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>S00</strong></td><td><span class="tag" style="background:#e8f0fe;color:#1565c0">Sparse</span></td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">0.5s (fast)</span></td><td>400–600</td><td>5–15%</td><td>Path optimization (baseline)</td></tr>
+          <tr><td><strong>S01</strong></td><td><span class="tag" style="background:#e8f0fe;color:#1565c0">Sparse</span></td><td><span class="tag" style="background:#fce8e6;color:#d93025">1.3s (slow)</span></td><td>400–600</td><td>5–15%</td><td>Path + Recon Core utilization</td></tr>
+          <tr><td><strong>S02</strong></td><td><span class="tag" style="background:#fff3e0;color:#e67e00">Dense</span></td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">0.5s (fast)</span></td><td>800–1200</td><td>5–15%</td><td>FOV packing efficiency</td></tr>
+          <tr><td><strong>S03</strong></td><td><span class="tag" style="background:#fff3e0;color:#e67e00">Dense</span></td><td><span class="tag" style="background:#fce8e6;color:#d93025">1.3s (slow)</span></td><td>800–1200</td><td>5–15%</td><td>Packing + Recon Core utilization</td></tr>
+          <tr><td><strong>S04</strong></td><td><span class="tag" style="background:#f3e5f5;color:#7b1fa2">Grid</span></td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">0.5s (fast)</span></td><td>1000–1500</td><td>0%</td><td>Scaling (uniform grid layout)</td></tr>
+          <tr><td><strong>S05</strong></td><td><span class="tag" style="background:#f3e5f5;color:#7b1fa2">Grid</span></td><td><span class="tag" style="background:#fce8e6;color:#d93025">1.3s (slow)</span></td><td>1000–1500</td><td>0%</td><td>Scaling + Recon Core utilization</td></tr>
+          <tr><td><strong>S06</strong></td><td><span class="tag" style="background:#fce8e6;color:#d93025">Big</span></td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">0.5s (fast)</span></td><td>300–500</td><td>40–60%</td><td>Tiling logic (many large components)</td></tr>
+          <tr><td><strong>S07</strong></td><td><span class="tag" style="background:#fce8e6;color:#d93025">Big</span></td><td><span class="tag" style="background:#fce8e6;color:#d93025">1.3s (slow)</span></td><td>300–500</td><td>40–60%</td><td>Tiling + Recon Core utilization</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-info">
+        <span class="ci">&#x1F4A1;</span>
+        <span><strong>Recon time difference:</strong> When recon_time is 0.5s (fast), camera movement is the bottleneck. When it is 1.3s (slow), 3D reconstruction becomes the bottleneck. In slow-recon scenarios, strategies that utilize additional Recon Cores are critical.</span>
+      </div>
+      <div class="callout callout-warn">
+        <span class="ci">&#x26A0;</span>
+        <span><strong>Dataset notice:</strong> The 96 datasets (8 scenarios &times; 12) are provided for development and testing. You may also generate additional scenarios with <code>1_generate_data.py</code>. The final contest evaluation will use a <strong>separate, hidden test set</strong>, which will be released on the GitHub repository after the contest ends.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Input Files -->
+<div class="section" id="s2" style="background:linear-gradient(135deg,#fafbff 0%,#f0f4ff 100%)">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--green)">2</span> Input Files</div>
+    <div class="section-desc">Four CSV files that the solver must read.</div>
+
+    <!-- input_component.csv -->
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3><span class="icon">&#x1F4CB;</span> input_component.csv — Component List</h3>
+      <table class="ct-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>(index)</code></td><td>int</td><td>Component index (0-based, row order)</td></tr>
+          <tr><td><code>tl_x, tl_y</code></td><td>float</td><td><strong>Top-left</strong> coordinates of the component bounding box (mm)</td></tr>
+          <tr><td><code>br_x, br_y</code></td><td>float</td><td><strong>Bottom-right</strong> coordinates of the component bounding box (mm)</td></tr>
+          <tr><td><code>type</code></td><td>int</td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">2 = Fiducial</span> <span class="tag" style="background:#f3e5f5;color:#7b1fa2">1 = Barcode</span> <span class="tag" style="background:#e8f0fe;color:#1565c0">0 = Normal</span></td></tr>
+          <tr><td><code>side</code></td><td>int</td><td>Side camera required (0: no, 1: yes)</td></tr>
+          <tr><td><code>step</code></td><td>int</td><td>Step height (0: default, 1: elevated region)</td></tr>
+          <tr><td><code>time</code></td><td>float</td><td>Per-component inspection time (seconds)</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">,tl_x,tl_y,br_x,br_y,type,side,step,time</span>
+0,491.00,497.00,496.00,502.00,<span style="color:#4EC9B0">2</span>,0,0,0.25     <span style="color:#6A9955"># Fiducial (type=2)</span>
+1,187.56,159.67,189.70,164.36,<span style="color:#C586C0">1</span>,0,0,0.10     <span style="color:#6A9955"># Barcode (type=1)</span>
+2,102.88,191.31,104.01,196.56,<span style="color:#C586C0">1</span>,0,0,0.059    <span style="color:#6A9955"># Barcode (type=1)</span>
+3,17.93,262.29,19.55,263.85,<span style="color:#C586C0">1</span>,0,0,0.025      <span style="color:#6A9955"># Barcode (type=1)</span>
+4,396.32,18.40,398.48,20.57,<span style="color:#9CDCFE">0</span>,0,0,0.015      <span style="color:#6A9955"># Normal component (type=0)</span></div>
+    </div>
+
+    <!-- input_size.csv -->
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3><span class="icon">&#x1F4D0;</span> input_size.csv — PCB/FOV Dimensions</h3>
+      <table class="ct-table">
+        <thead><tr><th>Column</th><th>Description</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><code>axis</code></td><td>Axis (x or y)</td><td>x, y</td></tr>
+          <tr><td><code>pcb_size</code></td><td>PCB size (mm)</td><td>128–512 (random per axis)</td></tr>
+          <tr><td><code>fov_size</code></td><td>FOV size (mm)</td><td>50–100 (random per axis)</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">axis,pcb_size,fov_size</span>
+x,<span style="color:#CE9178">380</span>,<span style="color:#CE9178">62</span>    <span style="color:#6A9955"># pcb_size: 128–512 random per axis, fov_size: 50–100 random</span>
+y,<span style="color:#CE9178">280</span>,<span style="color:#CE9178">55</span>    <span style="color:#6A9955"># independent per axis</span></div>
+    </div>
+
+    <!-- input_parameter.csv -->
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x2699;</span> input_parameter.csv — Equipment Parameters</h3>
+      <table class="ct-table">
+        <thead><tr><th>Column</th><th>Description</th><th>Range</th></tr></thead>
+        <tbody>
+          <tr><td><code>capture_time</code></td><td>FOV capture time (seconds)</td><td>0.5 (fixed)</td></tr>
+          <tr><td><code>recon_time</code></td><td>3D reconstruction time (seconds)</td><td><strong>0.5</strong> (fast) or <strong>1.3</strong> (slow)</td></tr>
+          <tr><td><code>side_capture_time</code></td><td>Side capture time (seconds)</td><td>0.75 (fixed)</td></tr>
+          <tr><td><code>max_core</code></td><td>Maximum parallel cores</td><td>4–16 (random per dataset)</td></tr>
+          <tr><td><code>v_x, v_y</code></td><td>Gantry max velocity (mm/s)</td><td>200–1000 (random per dataset)</td></tr>
+          <tr><td><code>a_x, a_y</code></td><td>Gantry acceleration (mm/s&sup2;)</td><td>4900–9800 (random per dataset)</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">capture_time,recon_time,side_capture_time,max_core,v_x,v_y,a_x,a_y</span>
+0.5,<span style="color:#CE9178">0.5</span>,0.75,<span style="color:#B5CEA8">8</span>,<span style="color:#B5CEA8">721</span>,<span style="color:#B5CEA8">315</span>,<span style="color:#B5CEA8">7900</span>,<span style="color:#B5CEA8">9198</span>   <span style="color:#6A9955"># fast scenario, max_core/v/a random per dataset</span></div>
+    </div>
+
+    <!-- input_step_region.csv -->
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <h3><span class="icon">&#x1F4CF;</span> input_step_region.csv — Step Regions</h3>
+      <p style="font-size:.88rem;color:var(--text2);margin-bottom:12px">Defines regions on the PCB with different heights (step=1). If a component's bounding box overlaps with this region, that component has <code>step=1</code>.</p>
+      <table class="ct-table">
+        <thead><tr><th>Column</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>(index)</code></td><td>Region index</td></tr>
+          <tr><td><code>tl_x, tl_y</code></td><td>Top-left coordinates of the step region (mm)</td></tr>
+          <tr><td><code>br_x, br_y</code></td><td>Bottom-right coordinates of the step region (mm)</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">,tl_x,tl_y,br_x,br_y</span>
+0,353.89,214.80,486.21,382.28   <span style="color:#6A9955"># 1 step region (132mm × 167mm)</span></div>
+      <div class="callout callout-warn">
+        <span class="ci">&#x26A0;</span>
+        <span><strong>Step transition penalty:</strong> Transitioning between step=0 and step=1 FOVs incurs a <strong>+5 second</strong> penalty for Z-axis height adjustment. Visiting FOVs of the same step consecutively is more efficient.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Output File -->
+<div class="section" id="s3">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--accent)">3</span> Output File</div>
+    <div class="section-desc">The file that the solver must generate. After running <code>2_run.py --solver &lt;name&gt;</code>, it is stored under <code>simulation_data/&lt;dataset&gt;/&lt;solver&gt;/output_fov.csv</code>.</div>
+
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x1F4E4;</span> output_fov.csv — FOV Placement Result</h3>
+      <p style="font-size:.88rem;color:var(--text2);margin-bottom:12px"><strong>Row order = FOV visit order.</strong> The first row is the first FOV to be visited.</p>
+      <table class="ct-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>(index)</code></td><td>int</td><td>FOV order (row order = visit order)</td></tr>
+          <tr><td><code>x, y</code></td><td>float</td><td>FOV center coordinates (mm)</td></tr>
+          <tr><td><code>comp_idx</code></td><td>JSON array</td><td>List of component indices contained in this FOV</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">,x,y,comp_idx</span>
+0,475.10,487.00,"[280, 0, 306, 586, 118, 153, 169]"  <span style="color:#6A9955"># 1st FOV: 7 components</span>
+1,188.63,162.01,"[139, 1, 550, 328, 180]"              <span style="color:#6A9955"># 2nd FOV</span>
+2,408.85,30.58,"[4, 525, 377, 98]"                     <span style="color:#6A9955"># 3rd FOV</span>
+3,103.45,193.94,"[2]"                                   <span style="color:#6A9955"># 4th FOV: 1 component</span></div>
+      <div class="callout callout-info">
+        <span class="ci">&#x2705;</span>
+        <span><strong>Constraints:</strong> Every component must be included in at least one FOV (<code>cover_all_components</code>), and the visit order must follow Fiducial &rarr; Barcode &rarr; Normal (<code>fov_inspection_order</code>).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. PCB Coordinate System -->
+<div class="section" id="s4" style="background:linear-gradient(135deg,#fafbff 0%,#f0f4ff 100%)">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--purple)">4</span> PCB Coordinate System</div>
+    <div class="section-desc">The origin is at the top-left corner of the PCB (0, 0). The X-axis increases to the right, and the Y-axis increases downward.</div>
+
+    <div class="card">
+      <svg viewBox="0 0 600 420" style="width:100%;max-width:600px;display:block;margin:0 auto;background:#fff">
+        <!-- PCB -->
+        <rect x="50" y="50" width="320" height="320" fill="#fafafa" stroke="#999" stroke-width="1.5" rx="4"/>
+        <text x="210" y="40" text-anchor="middle" font-size="13" fill="#333" font-weight="700">PCB (128~512 &times; 128~512 mm)</text>
+
+        <!-- Axes -->
+        <defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#333"/></marker></defs>
+        <line x1="50" y1="50" x2="400" y2="50" stroke="#333" stroke-width="1.5" marker-end="url(#ah)"/>
+        <text x="410" y="55" font-size="11" fill="#333" font-weight="600">X (mm)</text>
+        <line x1="50" y1="50" x2="50" y2="400" stroke="#333" stroke-width="1.5" marker-end="url(#ah)"/>
+        <text x="35" y="410" font-size="11" fill="#333" font-weight="600">Y</text>
+        <text x="42" y="46" font-size="10" fill="#666">(0,0)</text>
+        <text x="355" y="46" font-size="10" fill="#666">pcb_w</text>
+        <text x="14" y="375" font-size="10" fill="#666">pcb_h</text>
+
+        <!-- Step Region -->
+        <rect x="250" y="180" width="100" height="120" fill="rgba(230,126,0,0.08)" stroke="#c8a040" stroke-width="1.5" stroke-dasharray="6,3" rx="3"/>
+        <text x="300" y="200" text-anchor="middle" font-size="10" fill="#c8a040" font-weight="600">Step=1 Region</text>
+
+        <!-- Component example -->
+        <rect x="100" y="120" width="12" height="8" fill="#666" rx="1"/>
+        <text x="120" y="128" font-size="8" fill="#999">tl(100,120)</text>
+        <line x1="100" y1="128" x2="100" y2="140" stroke="#999" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <line x1="112" y1="128" x2="125" y2="140" stroke="#999" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <text x="100" y="148" font-size="8" fill="#999">br(112,128)</text>
+
+        <!-- FOV example -->
+        <rect x="85" y="105" width="50" height="50" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1.5" rx="3"/>
+        <text x="110" y="168" text-anchor="middle" font-size="9" fill="#0d904f" font-weight="600">FOV (50&times;50)</text>
+        <circle cx="110" cy="130" r="2" fill="#0d904f"/>
+        <text x="135" y="134" font-size="8" fill="#0d904f">center(110,130)</text>
+
+        <!-- Legend -->
+        <rect x="420" y="80" width="14" height="10" fill="#666" rx="1"/><text x="440" y="90" font-size="10" fill="#333">Component (tl, br)</text>
+        <rect x="420" y="110" width="14" height="10" fill="rgba(13,144,79,0.1)" stroke="#0d904f" stroke-width="1" rx="1"/><text x="440" y="120" font-size="10" fill="#333">FOV (50&times;50)</text>
+        <rect x="420" y="140" width="14" height="10" fill="rgba(230,126,0,0.08)" stroke="#c8a040" stroke-width="1" stroke-dasharray="3,2" rx="1"/><text x="440" y="150" font-size="10" fill="#333">Step=1 Region</text>
+        <circle cx="427" cy="175" r="3" fill="#0d904f"/><text x="440" y="178" font-size="10" fill="#333">FOV Center</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Common Parameters -->
+<div class="section" id="s5">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--green)">5</span> Common Parameters</div>
+    <div class="section-desc">Fixed values shared across all scenarios.</div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="icon">&#x1F4D0;</span> Dimensions &amp; Speed</h3>
+        <table class="ct-table">
+          <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>PCB size</td><td>128~512 &times; 128~512 mm (random per axis)</td></tr>
+            <tr><td>FOV size</td><td>50–100 &times; 50–100 mm (random per axis)</td></tr>
+            <tr><td>Capture time (capture_time)</td><td>0.5 s</td></tr>
+            <tr><td>Side capture time</td><td>0.75 s</td></tr>
+            <tr><td>Gantry velocity (v_x, v_y)</td><td>200–1000 mm/s (random per dataset)</td></tr>
+            <tr><td>Gantry acceleration (a_x, a_y)</td><td>4900–9800 mm/s&sup2; (random per dataset)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3><span class="icon">&#x1F527;</span> Per-Scenario Variables</h3>
+        <table class="ct-table">
+          <thead><tr><th>Parameter</th><th>Range</th></tr></thead>
+          <tbody>
+            <tr><td>max_core</td><td>4–16 (random per dataset)</td></tr>
+            <tr><td>recon_time</td><td>0.5 s (fast) / 1.3 s (slow)</td></tr>
+            <tr><td>Component count</td><td>300–1500 (varies by type)</td></tr>
+            <tr><td>Large component ratio</td><td>0–60% (varies by type)</td></tr>
+            <tr><td>Side component ratio</td><td>~20%</td></tr>
+            <tr><td>Step regions</td><td>1–2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:12px 0;font-size:.82rem;color:#888">
+  This dataset is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" style="color:var(--primary)">CC BY-NC-SA 4.0</a>. See Problem Description &sect;7 for details.
+</div>
+<div class="footer">
+  <div class="container">4th Koh Young AI Contest &mdash; ICCAS 2026</div>
+</div>
+</div>
+
+<div class="lang-ko">
+<div class="hero">
+  <div class="hero-bg"><img src="ky_logo.png" alt="Koh Young Technology"></div>
+  <div class="hero-content">
+    <div class="container">
+      <h1>시뮬레이션 데이터셋</h1>
+      <div class="subtitle">제4회 고영 AI 경진대회 &mdash; ICCAS 2026</div>
+    </div>
+  </div>
+</div>
+
+
+<div style="background:#fff;border-bottom:2px solid #e0e0e0;padding:8px 0;text-align:center;font-size:.85rem;position:sticky;top:0;z-index:999">
+  <div class="container" style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">
+    <a href="ICCAS_2026_CONTEST_RULES.html" class="nav-link" data-doc="대회규칙" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">대회규칙 ★</a>
+    <a href="ICCAS_2026_CONTEST_DATA_DESCRIPTION.html" class="nav-link" data-doc="데이터 설명" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#fff;background:#1a73e8;transition:all .2s">데이터 설명</a>
+    <a href="ICCAS_2026_CONTEST_GUIDE.html" class="nav-link" data-doc="실무가이드" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">실무가이드</a>
+    <a href="ICCAS_2026_CONTEST_TUTORIAL.html" class="nav-link" data-doc="튜토리얼" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">튜토리얼</a>
+    <a href="https://github.com/iccas2026-kohyoung/contest" class="nav-link" target="_blank" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">GitHub ↗</a>
+  </div>
+</div>
+
+<div style="background:#e8f0fe;border:1px solid #c2d7f2;border-radius:8px;padding:10px 16px;margin:12px auto;max-width:920px;font-size:.85rem;text-align:center">
+  &#x1F4D8; 이 문서는 보조 자료입니다. 공식 대회 규칙은 <a href="ICCAS_2026_CONTEST_RULES.html" style="color:#1a73e8;font-weight:700">대회규칙 ★</a>을 참고하세요.
+</div>
+
+<!-- 1. 데이터셋 개요 -->
+<div class="section" id="ko-s1">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--primary)">1</span> 데이터셋 개요</div>
+    <div class="section-desc">각 시나리오 폴더에는 PCB 부품 배치, 장비 파라미터, 단차 영역 정보가 포함됩니다. Solver는 이를 읽어 FOV 배치를 최적화합니다.</div>
+
+    <div class="card">
+      <h3><span class="icon">&#x1F4C1;</span> 폴더 구조</h3>
+      <div class="code-block">simulation_data/
+  S00_sparse_fast_001/          <span style="color:#6A9955"># 시나리오 유형_인스턴스 번호</span>
+  S00_sparse_fast_002/
+  S00_sparse_fast_003/
+  S01_sparse_slow_001/
+  ...
+  S07_big_slow_012/             <span style="color:#6A9955"># 총 96개 폴더 (8 시나리오 × 12)</span>
+
+각 폴더 내부:
+  input_component.csv           <span style="color:#6A9955"># 부품 목록 (위치, 유형, 검사시간)</span>
+  input_size.csv                <span style="color:#6A9955"># PCB/FOV 크기</span>
+  input_parameter.csv           <span style="color:#6A9955"># 장비 파라미터 (촬상, 복원, 이동속도)</span>
+  input_step_region.csv         <span style="color:#6A9955"># 단차 영역 좌표</span>
+  &lt;solver&gt;/                     <span style="color:#6A9955"># solver별 출력 하위 폴더 (예: ky/, greedy/)</span>
+    output_fov.csv              <span style="color:#6A9955"># Solver 출력 (FOV 배치 결과)</span>
+    result.html                 <span style="color:#6A9955"># 인터랙티브 뷰어 (3_view.py)</span></div>
+    </div>
+
+    <!-- 시나리오 매트릭스 -->
+    <div class="card">
+      <h3><span class="icon">&#x1F3AF;</span> 시나리오 유형 매트릭스 (8종 &times; 12 = 96개)</h3>
+      <table class="ct-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>배치 유형</th><th>복원 시간</th><th>부품 수</th><th>큰 부품 비율</th><th>핵심 테스트 포인트</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>S00</strong></td><td><span class="tag" style="background:#e8f0fe;color:#1565c0">Sparse</span></td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">0.5s (빠름)</span></td><td>400~600</td><td>5~15%</td><td>경로 최적화 (기본 유형)</td></tr>
+          <tr><td><strong>S01</strong></td><td><span class="tag" style="background:#e8f0fe;color:#1565c0">Sparse</span></td><td><span class="tag" style="background:#fce8e6;color:#d93025">1.3s (느림)</span></td><td>400~600</td><td>5~15%</td><td>경로 + Recon Core 활용</td></tr>
+          <tr><td><strong>S02</strong></td><td><span class="tag" style="background:#fff3e0;color:#e67e00">Dense</span></td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">0.5s (빠름)</span></td><td>800~1200</td><td>5~15%</td><td>FOV 패킹 효율</td></tr>
+          <tr><td><strong>S03</strong></td><td><span class="tag" style="background:#fff3e0;color:#e67e00">Dense</span></td><td><span class="tag" style="background:#fce8e6;color:#d93025">1.3s (느림)</span></td><td>800~1200</td><td>5~15%</td><td>패킹 + Recon Core 활용</td></tr>
+          <tr><td><strong>S04</strong></td><td><span class="tag" style="background:#f3e5f5;color:#7b1fa2">Grid</span></td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">0.5s (빠름)</span></td><td>1000~1500</td><td>0%</td><td>스케일링 (균일 격자 배치)</td></tr>
+          <tr><td><strong>S05</strong></td><td><span class="tag" style="background:#f3e5f5;color:#7b1fa2">Grid</span></td><td><span class="tag" style="background:#fce8e6;color:#d93025">1.3s (느림)</span></td><td>1000~1500</td><td>0%</td><td>스케일링 + Recon Core 활용</td></tr>
+          <tr><td><strong>S06</strong></td><td><span class="tag" style="background:#fce8e6;color:#d93025">Big</span></td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">0.5s (빠름)</span></td><td>300~500</td><td>40~60%</td><td>타일링 로직 (큰 부품 다수)</td></tr>
+          <tr><td><strong>S07</strong></td><td><span class="tag" style="background:#fce8e6;color:#d93025">Big</span></td><td><span class="tag" style="background:#fce8e6;color:#d93025">1.3s (느림)</span></td><td>300~500</td><td>40~60%</td><td>타일링 + Recon Core 활용</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-info">
+        <span class="ci">&#x1F4A1;</span>
+        <span><strong>복원 시간(recon_time) 차이:</strong> 0.5s(빠름)일 때는 카메라 이동이 병목, 1.3s(느림)일 때는 3D 복원이 병목이 됩니다. 느린 복원에서는 Recon Core를 추가로 활용하는 전략이 중요합니다.</span>
+      </div>
+      <div class="callout callout-warn">
+        <span class="ci">&#x26A0;</span>
+        <span><strong>데이터셋 안내:</strong> 96개 데이터셋(8 시나리오 &times; 12)은 개발 및 테스트용입니다. <code>1_generate_data.py</code>로 추가 시나리오를 자유롭게 생성할 수도 있습니다. 최종 공식 채점은 <strong>별도의 비공개 테스트셋</strong>으로 진행되며, 대회 종료 후 <a href="https://github.com/iccas2026-kohyoung/contest" target="_blank">GitHub 저장소</a>에 공개됩니다.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. 입력 파일 -->
+<div class="section" id="ko-s2" style="background:linear-gradient(135deg,#fafbff 0%,#f0f4ff 100%)">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--green)">2</span> 입력 파일 (Input Files)</div>
+    <div class="section-desc">Solver가 읽어야 하는 4개의 CSV 파일입니다.</div>
+
+    <!-- input_component.csv -->
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3><span class="icon">&#x1F4CB;</span> input_component.csv &mdash; 부품 목록</h3>
+      <table class="ct-table">
+        <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>(index)</code></td><td>int</td><td>부품 인덱스 (0-based, 행 순서)</td></tr>
+          <tr><td><code>tl_x, tl_y</code></td><td>float</td><td>부품 바운딩 박스의 <strong>좌상단</strong> 좌표 (mm)</td></tr>
+          <tr><td><code>br_x, br_y</code></td><td>float</td><td>부품 바운딩 박스의 <strong>우하단</strong> 좌표 (mm)</td></tr>
+          <tr><td><code>type</code></td><td>int</td><td><span class="tag" style="background:#e6f4ea;color:#0d904f">2 = Fiducial</span> <span class="tag" style="background:#f3e5f5;color:#7b1fa2">1 = Barcode</span> <span class="tag" style="background:#e8f0fe;color:#1565c0">0 = 일반 부품</span></td></tr>
+          <tr><td><code>side</code></td><td>int</td><td>Side 카메라 필요 여부 (0: 불필요, 1: 필요)</td></tr>
+          <tr><td><code>step</code></td><td>int</td><td>단차 높이 (0: 기본, 1: 높은 영역)</td></tr>
+          <tr><td><code>time</code></td><td>float</td><td>부품별 검사 시간 (초)</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">,tl_x,tl_y,br_x,br_y,type,side,step,time</span>
+0,491.00,497.00,496.00,502.00,<span style="color:#4EC9B0">2</span>,0,0,0.25     <span style="color:#6A9955"># Fiducial (type=2)</span>
+1,187.56,159.67,189.70,164.36,<span style="color:#C586C0">1</span>,0,0,0.10     <span style="color:#6A9955"># Barcode (type=1)</span>
+2,102.88,191.31,104.01,196.56,<span style="color:#C586C0">1</span>,0,0,0.059    <span style="color:#6A9955"># Barcode (type=1)</span>
+3,17.93,262.29,19.55,263.85,<span style="color:#C586C0">1</span>,0,0,0.025      <span style="color:#6A9955"># Barcode (type=1)</span>
+4,396.32,18.40,398.48,20.57,<span style="color:#9CDCFE">0</span>,0,0,0.015      <span style="color:#6A9955"># 일반 부품 (type=0)</span></div>
+    </div>
+
+    <!-- input_size.csv -->
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3><span class="icon">&#x1F4D0;</span> input_size.csv &mdash; PCB/FOV 크기</h3>
+      <table class="ct-table">
+        <thead><tr><th>컬럼</th><th>설명</th><th>값</th></tr></thead>
+        <tbody>
+          <tr><td><code>axis</code></td><td>축 (x 또는 y)</td><td>x, y</td></tr>
+          <tr><td><code>pcb_size</code></td><td>PCB 크기 (mm)</td><td>128~512 (축별 랜덤)</td></tr>
+          <tr><td><code>fov_size</code></td><td>FOV 크기 (mm)</td><td>50~100 (축별 랜덤)</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">axis,pcb_size,fov_size</span>
+x,<span style="color:#CE9178">380</span>,<span style="color:#CE9178">62</span>    <span style="color:#6A9955"># pcb_size: 128~512 축별 랜덤, fov_size: 50~100 랜덤</span>
+y,<span style="color:#CE9178">280</span>,<span style="color:#CE9178">55</span>    <span style="color:#6A9955"># 축별 독립 랜덤</span></div>
+    </div>
+
+    <!-- input_parameter.csv -->
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x2699;</span> input_parameter.csv &mdash; 장비 파라미터</h3>
+      <table class="ct-table">
+        <thead><tr><th>컬럼</th><th>설명</th><th>범위</th></tr></thead>
+        <tbody>
+          <tr><td><code>capture_time</code></td><td>FOV 촬상 시간 (초)</td><td>0.5 (고정)</td></tr>
+          <tr><td><code>recon_time</code></td><td>3D 복원 시간 (초)</td><td><strong>0.5</strong> (빠름) 또는 <strong>1.3</strong> (느림)</td></tr>
+          <tr><td><code>side_capture_time</code></td><td>Side 촬상 시간 (초)</td><td>0.75 (고정)</td></tr>
+          <tr><td><code>max_core</code></td><td>최대 병렬 Core 수</td><td>4~16 (데이터셋별 랜덤)</td></tr>
+          <tr><td><code>v_x, v_y</code></td><td>갠트리 최대 속도 (mm/s)</td><td>200~1000 (데이터셋별 랜덤)</td></tr>
+          <tr><td><code>a_x, a_y</code></td><td>갠트리 가속도 (mm/s&sup2;)</td><td>4900~9800 (데이터셋별 랜덤)</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">capture_time,recon_time,side_capture_time,max_core,v_x,v_y,a_x,a_y</span>
+0.5,<span style="color:#CE9178">0.5</span>,0.75,<span style="color:#B5CEA8">8</span>,<span style="color:#B5CEA8">721</span>,<span style="color:#B5CEA8">315</span>,<span style="color:#B5CEA8">7900</span>,<span style="color:#B5CEA8">9198</span>   <span style="color:#6A9955"># fast 시나리오, max_core/v/a 데이터셋별 랜덤</span></div>
+    </div>
+
+    <!-- input_step_region.csv -->
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <h3><span class="icon">&#x1F4CF;</span> input_step_region.csv &mdash; 단차 영역</h3>
+      <p style="font-size:.88rem;color:var(--text2);margin-bottom:12px">PCB 위의 높이가 다른 영역(step=1)을 정의합니다. 부품의 바운딩 박스가 이 영역과 겹치면 해당 부품의 <code>step=1</code>입니다.</p>
+      <table class="ct-table">
+        <thead><tr><th>컬럼</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>(index)</code></td><td>영역 인덱스</td></tr>
+          <tr><td><code>tl_x, tl_y</code></td><td>단차 영역 좌상단 좌표 (mm)</td></tr>
+          <tr><td><code>br_x, br_y</code></td><td>단차 영역 우하단 좌표 (mm)</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">,tl_x,tl_y,br_x,br_y</span>
+0,353.89,214.80,486.21,382.28   <span style="color:#6A9955"># 단차 영역 1개 (132mm × 167mm)</span></div>
+      <div class="callout callout-warn">
+        <span class="ci">&#x26A0;</span>
+        <span><strong>단차 전환 페널티:</strong> step=0 FOV와 step=1 FOV 간 전환 시 Z축 높이 조절로 <strong>+5초</strong>가 추가됩니다. 같은 step의 FOV를 연속 방문하는 것이 유리합니다.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. 출력 파일 -->
+<div class="section" id="ko-s3">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--accent)">3</span> 출력 파일 (Output File)</div>
+    <div class="section-desc">Solver가 생성해야 하는 파일입니다. <code>2_run.py --solver &lt;name&gt;</code> 실행 후 <code>simulation_data/&lt;dataset&gt;/&lt;solver&gt;/output_fov.csv</code>에 저장됩니다.</div>
+
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x1F4E4;</span> output_fov.csv &mdash; FOV 배치 결과</h3>
+      <p style="font-size:.88rem;color:var(--text2);margin-bottom:12px"><strong>행 순서 = FOV 방문 순서</strong>입니다. 첫 번째 행이 가장 먼저 방문하는 FOV입니다.</p>
+      <table class="ct-table">
+        <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>(index)</code></td><td>int</td><td>FOV 순서 (행 순서 = 방문 순서)</td></tr>
+          <tr><td><code>x, y</code></td><td>float</td><td>FOV 중심 좌표 (mm)</td></tr>
+          <tr><td><code>comp_idx</code></td><td>JSON array</td><td>해당 FOV에 포함된 부품 인덱스 목록</td></tr>
+        </tbody>
+      </table>
+      <div class="code-block"><span style="color:#569CD6">,x,y,comp_idx</span>
+0,475.10,487.00,"[280, 0, 306, 586, 118, 153, 169]"  <span style="color:#6A9955"># 첫 FOV: 7개 부품</span>
+1,188.63,162.01,"[139, 1, 550, 328, 180]"              <span style="color:#6A9955"># 두 번째 FOV</span>
+2,408.85,30.58,"[4, 525, 377, 98]"                     <span style="color:#6A9955"># 세 번째 FOV</span>
+3,103.45,193.94,"[2]"                                   <span style="color:#6A9955"># 네 번째 FOV: 1개 부품</span></div>
+      <div class="callout callout-info">
+        <span class="ci">&#x2705;</span>
+        <span><strong>제약 조건:</strong> 모든 부품이 최소 1개 FOV에 포함되어야 하며(<code>cover_all_components</code>), Fiducial &rarr; Barcode &rarr; 일반 순서를 지켜야 합니다(<code>fov_inspection_order</code>).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. PCB 좌표계 -->
+<div class="section" id="ko-s4" style="background:linear-gradient(135deg,#fafbff 0%,#f0f4ff 100%)">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--purple)">4</span> PCB 좌표계</div>
+    <div class="section-desc">좌표 원점은 PCB 좌상단 (0,0)이며, X축은 오른쪽, Y축은 아래쪽으로 증가합니다.</div>
+
+    <div class="card">
+      <svg viewBox="0 0 600 420" style="width:100%;max-width:600px;display:block;margin:0 auto;background:#fff">
+        <!-- PCB -->
+        <rect x="50" y="50" width="320" height="320" fill="#fafafa" stroke="#999" stroke-width="1.5" rx="4"/>
+        <text x="210" y="40" text-anchor="middle" font-size="13" fill="#333" font-weight="700">PCB (128~512 &times; 128~512 mm)</text>
+
+        <!-- Axes -->
+        <defs><marker id="ko-ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#333"/></marker></defs>
+        <line x1="50" y1="50" x2="400" y2="50" stroke="#333" stroke-width="1.5" marker-end="url(#ko-ah)"/>
+        <text x="410" y="55" font-size="11" fill="#333" font-weight="600">X (mm)</text>
+        <line x1="50" y1="50" x2="50" y2="400" stroke="#333" stroke-width="1.5" marker-end="url(#ko-ah)"/>
+        <text x="35" y="410" font-size="11" fill="#333" font-weight="600">Y</text>
+        <text x="42" y="46" font-size="10" fill="#666">(0,0)</text>
+        <text x="355" y="46" font-size="10" fill="#666">pcb_w</text>
+        <text x="14" y="375" font-size="10" fill="#666">pcb_h</text>
+
+        <!-- Step Region -->
+        <rect x="250" y="180" width="100" height="120" fill="rgba(230,126,0,0.08)" stroke="#c8a040" stroke-width="1.5" stroke-dasharray="6,3" rx="3"/>
+        <text x="300" y="200" text-anchor="middle" font-size="10" fill="#c8a040" font-weight="600">Step=1 영역</text>
+
+        <!-- Component example -->
+        <rect x="100" y="120" width="12" height="8" fill="#666" rx="1"/>
+        <text x="120" y="128" font-size="8" fill="#999">tl(100,120)</text>
+        <line x1="100" y1="128" x2="100" y2="140" stroke="#999" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <line x1="112" y1="128" x2="125" y2="140" stroke="#999" stroke-width="0.5" stroke-dasharray="2,2"/>
+        <text x="100" y="148" font-size="8" fill="#999">br(112,128)</text>
+
+        <!-- FOV example -->
+        <rect x="85" y="105" width="50" height="50" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1.5" rx="3"/>
+        <text x="110" y="168" text-anchor="middle" font-size="9" fill="#0d904f" font-weight="600">FOV (50&times;50)</text>
+        <circle cx="110" cy="130" r="2" fill="#0d904f"/>
+        <text x="135" y="134" font-size="8" fill="#0d904f">center(110,130)</text>
+
+        <!-- Legend -->
+        <rect x="420" y="80" width="14" height="10" fill="#666" rx="1"/><text x="440" y="90" font-size="10" fill="#333">부품 (tl, br)</text>
+        <rect x="420" y="110" width="14" height="10" fill="rgba(13,144,79,0.1)" stroke="#0d904f" stroke-width="1" rx="1"/><text x="440" y="120" font-size="10" fill="#333">FOV (50&times;50)</text>
+        <rect x="420" y="140" width="14" height="10" fill="rgba(230,126,0,0.08)" stroke="#c8a040" stroke-width="1" stroke-dasharray="3,2" rx="1"/><text x="440" y="150" font-size="10" fill="#333">Step=1 영역</text>
+        <circle cx="427" cy="175" r="3" fill="#0d904f"/><text x="440" y="178" font-size="10" fill="#333">FOV 중심</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- 5. 공통 파라미터 -->
+<div class="section" id="ko-s5">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--green)">5</span> 공통 파라미터</div>
+    <div class="section-desc">모든 시나리오에서 공유되는 고정값입니다.</div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="icon">&#x1F4D0;</span> 크기 &amp; 속도</h3>
+        <table class="ct-table">
+          <thead><tr><th>파라미터</th><th>값</th></tr></thead>
+          <tbody>
+            <tr><td>PCB 크기</td><td>128~512 &times; 128~512 mm (축별 랜덤)</td></tr>
+            <tr><td>FOV 크기</td><td>50~100 &times; 50~100 mm (축별 랜덤)</td></tr>
+            <tr><td>촬상 시간 (capture_time)</td><td>0.5초</td></tr>
+            <tr><td>Side 촬상 시간</td><td>0.75초</td></tr>
+            <tr><td>이동 속도 (v_x, v_y)</td><td>200~1000 mm/s (데이터셋별 랜덤)</td></tr>
+            <tr><td>가속도 (a_x, a_y)</td><td>4900~9800 mm/s&sup2; (데이터셋별 랜덤)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3><span class="icon">&#x1F527;</span> 시나리오별 변수</h3>
+        <table class="ct-table">
+          <thead><tr><th>파라미터</th><th>범위</th></tr></thead>
+          <tbody>
+            <tr><td>max_core</td><td>4~16 (데이터셋별 랜덤)</td></tr>
+            <tr><td>recon_time</td><td>0.5s (fast) / 1.3s (slow)</td></tr>
+            <tr><td>부품 수</td><td>300~1500 (유형별 상이)</td></tr>
+            <tr><td>큰 부품 비율</td><td>0~60% (유형별 상이)</td></tr>
+            <tr><td>Side 부품 비율</td><td>~20%</td></tr>
+            <tr><td>단차 영역</td><td>1~2개</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:12px 0;font-size:.82rem;color:#888">
+  본 데이터셋은 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" style="color:var(--primary)">CC BY-NC-SA 4.0</a> 라이선스를 따릅니다. 상세는 문제설명 &sect;7 참조.
+</div>
+<div class="footer">
+  <div class="container">제4회 고영 AI 경진대회 &mdash; ICCAS 2026</div>
+</div>
+</div>
+
+</body>
+</html>

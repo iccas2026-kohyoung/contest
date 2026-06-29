@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AOI Tutorial — Greedy FOV Placement Example</title>
+<style>
+
+:root {
+  --primary:#1a73e8; --primary-light:#e8f0fe;
+  --accent:#e67e00; --accent-light:#fff3e0;
+  --green:#0d904f; --green-light:#e6f4ea;
+  --red:#d93025; --red-light:#fce8e6;
+  --purple:#7b1fa2; --purple-light:#f3e5f5;
+  --bg:#f8f9fa; --card:#ffffff; --text:#202124; --text2:#5f6368;
+  --border:#dadce0;
+  --shadow:0 1px 3px rgba(0,0,0,0.12),0 1px 2px rgba(0,0,0,0.08);
+  --shadow-hover:0 4px 12px rgba(0,0,0,0.15);
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+.hero{background:#fff;color:var(--text);padding:0;text-align:left;position:relative;overflow:hidden;min-height:180px;display:flex;align-items:center}
+.hero-bg{position:absolute;top:0;left:0;height:100%;z-index:0;padding:20px}
+.hero-bg img{height:100%;width:auto}
+.hero-content{position:relative;z-index:1;width:100%;padding:36px 0 28px}
+.hero .logo-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;justify-content:flex-end;padding-right:40px}
+.hero .logo-row img{height:32px}
+.hero h1{font-size:2rem;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;text-align:center}
+.hero .subtitle{font-size:1.05rem;color:var(--text2);text-align:center}
+.hero .badge-row{display:none}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+.section{padding:48px 0}
+.section-title{font-size:1.5rem;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.section-title .num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-size:.95rem;font-weight:800;color:#fff;flex-shrink:0}
+.section-desc{color:var(--text2);margin-bottom:28px;font-size:.95rem}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;margin-bottom:20px;border:1px solid var(--border);transition:box-shadow .2s}
+.card:hover{box-shadow:var(--shadow-hover)}
+.card h3{font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}[style*="grid-template-columns"]{grid-template-columns:1fr!important}}
+.ct-table{width:100%;border-collapse:separate;border-spacing:0;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin:12px 0}
+.ct-table th{background:var(--primary);color:#fff;padding:10px 12px;text-align:left;font-size:.82rem;font-weight:700}
+.ct-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:.84rem;vertical-align:top}
+.ct-table tr:last-child td{border-bottom:none}
+.ct-table tr:nth-child(even) td{background:#f8f9fa}
+.ct-table .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:700}
+.callout{border-radius:10px;padding:16px 20px;margin:16px 0;font-size:.88rem;display:flex;gap:12px;align-items:flex-start}
+.callout .ci{font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.callout-info{background:var(--primary-light);border:1px solid #b3d4fc}
+.callout-warn{background:var(--accent-light);border:1px solid #ffd699}
+.callout-new{background:var(--green-light);border:1px solid #a8dab5}
+.callout-danger{background:var(--red-light);border:1px solid #f5c6cb}
+.tab-group{margin:20px 0}
+.tab-bar{display:flex;gap:4px;border-bottom:2px solid var(--border);flex-wrap:wrap}
+.tab-btn{padding:12px 16px;font-size:.84rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;-webkit-tap-highlight-color:rgba(26,115,232,0.15);touch-action:manipulation;min-height:44px}
+.tab-btn:hover{color:var(--text);background:#f1f3f4}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-panel{display:none;padding:16px 0}
+.tab-panel.active{display:block}
+.kpi-row{display:flex;gap:16px;flex-wrap:wrap;margin:20px 0}
+.kpi{flex:1;min-width:120px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;text-align:center;border:1px solid var(--border)}
+.kpi .kpi-value{font-size:1.8rem;font-weight:800}
+.kpi .kpi-label{font-size:.78rem;color:var(--text2);margin-top:4px}
+.code-block{background:#1e1e1e;color:#d4d4d4;padding:14px;border-radius:8px;font-family:'Fira Code','Consolas',monospace;font-size:.8rem;line-height:1.7;overflow-x:auto;margin:12px 0;white-space:pre}
+.badge-ok{display:inline-block;background:#d4edda;color:#155724;padding:3px 10px;border-radius:6px;font-weight:700;font-size:.82rem}
+.badge-fail{display:inline-block;background:#f8d7da;color:#721c24;padding:3px 10px;border-radius:6px;font-weight:700;font-size:.82rem}
+.badge-neutral{display:inline-block;background:#e2e3e5;color:#383d41;padding:3px 10px;border-radius:6px;font-weight:700;font-size:.82rem}
+.stepper-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:24px;padding:12px 16px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border)}
+.step-btn{padding:10px 16px;font-size:.84rem;font-weight:600;cursor:pointer;border:2px solid var(--border);background:#fff;border-radius:8px;transition:all .2s;color:var(--text2);-webkit-tap-highlight-color:rgba(13,144,79,0.15);touch-action:manipulation;min-height:44px}
+.step-btn:hover{border-color:var(--green);color:var(--green)}
+.step-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+.step-btn.done{background:var(--green-light);color:var(--green);border-color:var(--green)}
+.step-arrow{color:var(--text2);font-size:1.1rem;font-weight:700}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:.8rem;color:var(--text2)}
+.legend-item .swatch{width:14px;height:10px;border-radius:2px}
+.viewer-mock{border:2px solid #455a64;border-radius:8px;overflow:hidden;margin:8px 0}
+.viewer-header{background:#263238;color:#fff;padding:6px 12px;font-size:.82rem;font-weight:600}
+.viewer-footer{background:#f5f5f5;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.82rem;border-top:1px solid var(--border)}
+.desc-panel{font-size:.9rem;line-height:1.8}
+.desc-panel p{margin-bottom:8px}
+svg text{font-family:'Pretendard','Noto Sans KR',sans-serif}
+.footer{background:#263238;color:rgba(255,255,255,.7);padding:24px 0;text-align:center;font-size:.82rem}
+.algo-box{background:#f0f4f8;border:1px solid #d0d7de;border-radius:8px;padding:16px 20px;margin:16px 0;font-family:'Fira Code','Consolas',monospace;font-size:.82rem;line-height:1.9;white-space:pre;overflow-x:auto}
+.pipeline-row{display:flex;align-items:center;gap:0;margin:4px 0}
+.pipeline-label{width:100px;font-size:.82rem;font-weight:600;color:var(--text2);flex-shrink:0;text-align:right;padding-right:8px}
+.pipeline-bar{height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;min-width:30px}
+
+/* Language toggle */
+.lang-toggle{position:fixed;top:12px;right:16px;z-index:9999;display:flex;gap:0;border-radius:6px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:sans-serif}
+.lang-toggle button{border:none;padding:7px 16px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s}
+.lang-toggle button.active{background:#1a73e8;color:#fff}
+.lang-toggle button:not(.active){background:#fff;color:#555}
+.lang-toggle button:not(.active):hover{background:#f0f0f0}
+.lang-ko{display:none}
+
+</style>
+</head>
+<body>
+
+<div class="lang-toggle" id="langToggle">
+  <button onclick="setLang('en')" class="active" id="btn-en">EN</button>
+  <button onclick="setLang('ko')" id="btn-ko">KR</button>
+</div>
+<script>
+function setLang(lang){
+  document.querySelector('.lang-en').style.display=lang==='en'?'block':'none';
+  document.querySelector('.lang-ko').style.display=lang==='ko'?'block':'none';
+  document.getElementById('btn-en').className=lang==='en'?'active':'';
+  document.getElementById('btn-ko').className=lang==='ko'?'active':'';
+  try{localStorage.setItem('ipo-lang',lang)}catch(e){}
+}
+document.addEventListener('DOMContentLoaded',function(){try{var saved=localStorage.getItem('ipo-lang');if(saved==='ko')setLang('ko')}catch(e){}})
+</script>
+
+
+<div class="lang-en">
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"><img src="ky_logo.png" alt="Koh Young Technology"></div>
+  <div class="hero-content">
+    <div class="container">
+      <h1>AOI Tutorial</h1>
+      <div class="subtitle">Learn step-by-step Greedy FOV placement with a small example (10 components)</div>
+    </div>
+  </div>
+</div>
+
+
+<div style="background:#fff;border-bottom:2px solid #e0e0e0;padding:8px 0;text-align:center;font-size:.85rem;position:sticky;top:0;z-index:999">
+  <div class="container" style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">
+    <a href="ICCAS_2026_CONTEST_RULES.html" class="nav-link" data-doc="Rules" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Rules ★</a>
+    <a href="ICCAS_2026_CONTEST_DATA_DESCRIPTION.html" class="nav-link" data-doc="Data Description" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Data Description</a>
+    <a href="ICCAS_2026_CONTEST_GUIDE.html" class="nav-link" data-doc="Guide" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Guide</a>
+    <a href="ICCAS_2026_CONTEST_TUTORIAL.html" class="nav-link" data-doc="Tutorial" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#fff;background:#1a73e8;transition:all .2s">Tutorial</a>
+    <a href="https://github.com/iccas2026-kohyoung/contest" class="nav-link" target="_blank" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">GitHub ↗</a>
+  </div>
+</div>
+
+<div style="background:#e8f0fe;border:1px solid #c2d7f2;border-radius:8px;padding:10px 16px;margin:12px auto;max-width:920px;font-size:.85rem;text-align:center">
+  &#x1F4D8; This is a supplementary document. For official contest rules, see <a href="ICCAS_2026_CONTEST_RULES.html" style="color:#1a73e8;font-weight:700">Contest Rules ★</a>
+</div>
+
+<!-- ===== SECTION 1: Input Data ===== -->
+<div class="section" id="s1">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--primary)">1</span> Input Data</div>
+    <div class="section-desc">Let's examine the example PCB data. 10 components are placed on a 160&times;120mm PCB.</div>
+
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3>PCB Component Layout</h3>
+      <div id="pcb-overview" style="max-width:620px;margin:0 auto"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="swatch" style="background:#43a047"></div>Fiducial (type=2)</div>
+        <div class="legend-item"><div class="swatch" style="background:#e67e00"></div>Barcode (type=1)</div>
+        <div class="legend-item"><div class="swatch" style="background:#1565c0"></div>Normal (type=0)</div>
+        <div class="legend-item"><div class="swatch" style="background:#42a5f5;border:1px dashed #1565c0"></div>Side (side=1)</div>
+        <div class="legend-item"><div class="swatch" style="background:none;border:1.5px dashed #0d904f"></div>Side FOV (fov/2)</div>
+        <div class="legend-item"><div class="swatch" style="background:rgba(156,39,176,0.12);border:1px dashed #9c27b0"></div>Step Region (step=1)</div>
+      </div>
+    </div>
+
+    <div class="callout callout-warn">
+      <span class="ci">&#x1F6E0;</span>
+      <div><strong>Python 3.11 required for kohyoung_solver</strong><br>
+        The provided <code>kohyoung_solver</code> package only works in a <strong>Python 3.11</strong> environment.
+        Other versions (3.10, 3.12, etc.) may cause import errors, so be sure to set up a virtual environment with Python 3.11.<br>
+        <code style="background:#fff3e0;padding:2px 6px;border-radius:4px;font-size:.82rem">conda create -n iccas_contest python=3.11</code> or <code style="background:#fff3e0;padding:2px 6px;border-radius:4px;font-size:.82rem">pyenv install 3.11</code></div>
+    </div>
+
+    <div class="tab-group">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="showTab(event,'tab-comp')">input_component.csv</button>
+        <button class="tab-btn" onclick="showTab(event,'tab-size')">input_size.csv</button>
+        <button class="tab-btn" onclick="showTab(event,'tab-param')">input_parameter.csv</button>
+        <button class="tab-btn" onclick="showTab(event,'tab-step')">input_step_region.csv</button>
+      </div>
+      <div class="tab-panel active" id="tab-comp">
+        <table class="ct-table">
+          <tr><th></th><th>tl_x</th><th>tl_y</th><th>br_x</th><th>br_y</th><th>type</th><th>side</th><th>step</th><th>time</th></tr>
+          <tr><td><strong>0</strong></td><td>12</td><td>8</td><td>18</td><td>14</td><td><span class="tag" style="background:#e8f5e9;color:#2e7d32">2</span></td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td><strong>1</strong></td><td>130</td><td>10</td><td>145</td><td>22</td><td><span class="tag" style="background:#fff3e0;color:#e65100">1</span></td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td><strong>2</strong></td><td>20</td><td>45</td><td>32</td><td>55</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>3</strong></td><td>35</td><td>38</td><td>45</td><td>48</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>4</strong></td><td>25</td><td>35</td><td>35</td><td>43</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td><strong>1</strong></td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>5</strong></td><td>70</td><td>40</td><td>85</td><td>52</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>6</strong></td><td>80</td><td>55</td><td>95</td><td>65</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>7</strong></td><td>68</td><td>50</td><td>78</td><td>60</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td><strong>1</strong></td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>8</strong></td><td>110</td><td>85</td><td>125</td><td>95</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td><strong>1</strong></td><td>0.3</td></tr>
+          <tr><td><strong>9</strong></td><td>128</td><td>90</td><td>142</td><td>100</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td><strong>1</strong></td><td>0.3</td></tr>
+        </table>
+        <div class="callout callout-info" style="margin-top:8px">
+          <span class="ci">&#x1F4A1;</span>
+          <span><strong>type</strong>: 2=Fiducial, 1=Barcode, 0=Normal &nbsp;|&nbsp; <strong>side</strong>: If 1, Side camera capture is required (must fit within half-size FOV area) &nbsp;|&nbsp; <strong>step</strong>: If 1, the component is in a step region</span>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-size">
+        <table class="ct-table">
+          <tr><th>pcb_x</th><th>pcb_y</th><th>fov_x</th><th>fov_y</th></tr>
+          <tr><td>160</td><td>120</td><td>50</td><td>50</td></tr>
+        </table>
+        <div class="callout callout-info"><span class="ci">&#x1F4A1;</span><span>PCB size 160&times;120mm, FOV size 50&times;50mm</span></div>
+      </div>
+      <div class="tab-panel" id="tab-param">
+        <table class="ct-table">
+          <tr><th>capture_time</th><th>recon_time</th><th>side_capture_time</th><th>max_core</th><th>v_x</th><th>v_y</th><th>a_x</th><th>a_y</th></tr>
+          <tr><td>0.5</td><td>0.5</td><td>0.25</td><td>8</td><td>1000</td><td>1000</td><td>9800</td><td>9800</td></tr>
+        </table>
+        <div class="callout callout-info"><span class="ci">&#x1F4A1;</span><span>Capture 0.5s, Reconstruction 0.5s, Side additional 0.25s, Max 8 cores, Movement speed 1000mm/s, Acceleration 9800mm/s&sup2;<br><em>Note: v_x, v_y (200–1000) and a_x, a_y (4900–9800) vary per dataset. This example uses v=1000, a=9800.</em></span></div>
+      </div>
+      <div class="tab-panel" id="tab-step">
+        <table class="ct-table">
+          <tr><th></th><th>tl_x</th><th>tl_y</th><th>br_x</th><th>br_y</th></tr>
+          <tr><td>0</td><td>100</td><td>75</td><td>160</td><td>120</td></tr>
+        </table>
+        <div class="callout callout-info"><span class="ci">&#x1F4A1;</span><span>Step region: bottom-right of PCB (100,75)~(160,120). Components within this region have step=1</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 2: Step-by-Step Greedy Solution ===== -->
+<div class="section" id="s2" style="background:#fff">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--green)">2</span> Step-by-Step Greedy Solution</div>
+    <div class="section-desc">Follow along as we place FOVs one by one using the Greedy algorithm. Click the buttons below.</div>
+
+    <div class="stepper-bar">
+      <button class="step-btn active" onclick="setStep(0)">Initial</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStep(1)">FOV &nbsp;&#9312;</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStep(2)">FOV &nbsp;&#9313;</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStep(3)">FOV &nbsp;&#9314;</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStep(4)">FOV &nbsp;&#9315;</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStep(5)">FOV &nbsp;&#9316;</button>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3 id="step-title">Initial State</h3>
+      <div class="grid-2">
+        <div id="pcb-stepper" style="max-width:500px"></div>
+        <div>
+          <div class="desc-panel" id="step-desc"></div>
+          <div class="callout callout-new" id="step-tip" style="margin-top:12px"></div>
+          <div class="code-block" id="step-fov-detail" style="display:none;margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-value" id="kpi-covered" style="color:var(--green)">0</div><div class="kpi-label">Covered Components</div></div>
+      <div class="kpi"><div class="kpi-value" id="kpi-uncovered" style="color:var(--red)">10</div><div class="kpi-label">Unassigned Components</div></div>
+      <div class="kpi"><div class="kpi-value" id="kpi-fovs" style="color:var(--primary)">0</div><div class="kpi-label">Placed FOVs</div></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>Greedy Algorithm Pseudocode</h3>
+      <div class="algo-box">Algorithm: Greedy FOV Placement
+────────────────────────────────────
+<strong>Phase 1: Fiducial-Only FOVs</strong>
+1.  FOR EACH comp WHERE type == 2:
+2.    Create FOV(center = comp.center, comps = [comp])  <span style="color:#ce9178">// 1 Fiducial per FOV</span>
+
+<strong>Phase 2: Origin-Distance Greedy Placement</strong>
+3.  remaining &larr; sort unassigned components by distance to (0,0)
+4.  FOR EACH seed IN remaining:
+5.    fov_center &larr; (seed.tl_x + fov_w/2, seed.tl_y + fov_h/2)  <span style="color:#ce9178">// component at FOV top-left</span>
+6.    fov_center &larr; clamp to PCB boundary
+7.    covered &larr; all same-step unassigned components fully inside FOV
+8.    <span style="color:#ce9178">Note: side=1 components checked against Side FOV (fov/2) area</span>
+9.    Create FOV(fov_center, covered)
+
+<strong>Phase 3: Big Component Tiling</strong>
+10. FOR EACH comp WHERE size &gt; FOV:
+11.   Place ceil(w/fov_w) &times; ceil(h/fov_h) grid of FOVs
+
+<strong>Phase 4: Path Ordering</strong>
+12. type descending groups (2 &rarr; 1 &rarr; 0) &times; nearest neighbor ordering</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: Coverage Error Demo ===== -->
+<div class="section" id="s3">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--red)">3</span> Coverage Error Demo</div>
+    <div class="section-desc">What happens when a component is not included in any FOV? See how errors are displayed in the Checker and Viewer.</div>
+
+    <div class="grid-2">
+      <!-- Correct case -->
+      <div class="card" style="border-left:4px solid var(--green)">
+        <h3><span style="color:var(--green)">&#10003;</span> Correct Result (Cover: PASS)</h3>
+        <div class="viewer-mock">
+          <div class="viewer-header">Combined View &mdash; Normal</div>
+          <div id="pcb-correct" style="padding:8px;background:#fafafa"></div>
+          <div class="viewer-footer">
+            <span class="badge-ok">Cover: PASS</span>
+            <span class="badge-ok">Order: PASS</span>
+            <span class="badge-neutral">FOVs: 5</span>
+          </div>
+        </div>
+        <div class="code-block" style="font-size:.78rem">,x,y,comp_idx
+0,15,11,[0]
+1,138,16,[1]
+2,30,40,"[2, 3, 4]"
+3,74,55,"[5, 6, 7]"
+4,126,93,"[8, 9]"</div>
+      </div>
+
+      <!-- Error case -->
+      <div class="card" style="border-left:4px solid var(--red)">
+        <h3><span style="color:var(--red)">&#10007;</span> Error Result (Cover: FAIL)</h3>
+        <div class="viewer-mock">
+          <div class="viewer-header" style="background:#b71c1c">Combined View &mdash; Error</div>
+          <div id="pcb-error" style="padding:8px;background:#fafafa"></div>
+          <div class="viewer-footer">
+            <span class="badge-fail">Cover: FAIL</span>
+            <span class="badge-ok">Order: PASS</span>
+            <span class="badge-neutral">FOVs: 5</span>
+          </div>
+        </div>
+        <div class="code-block" style="font-size:.78rem">,x,y,comp_idx
+0,15,11,[0]
+1,138,16,[1]
+2,30,40,"[2, 3, 4]"
+3,95,46,"[5, 6]"       <span style="color:#f44336">&larr; #7 missing!</span>
+4,126,93,"[8, 9]"</div>
+      </div>
+    </div>
+
+    <div class="callout callout-danger" style="margin-top:8px">
+      <span class="ci">&#x26A0;</span>
+      <div>
+        <strong>Component #7 is not included in any FOV.</strong><br>
+        When the Checker's <code>cover_all_components()</code> detects uncovered components:<br>
+        &bull; The component's <code>error</code> flag is set to 1<br>
+        &bull; The component is displayed in <strong style="color:#d63031">red (#d63031)</strong> in the Viewer<br>
+        &bull; The error FOV is shown with a <strong style="color:#cd4547">red border (#cd4547)</strong> and <strong style="color:#cd6347">red background (rgba(205,99,71,0.2))</strong><br>
+        &bull; The Cover result is shown as <span class="badge-fail">FAIL</span>
+      </div>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:8px">
+      <span class="ci">&#x1F4A1;</span>
+      <div>
+        <strong>Other error cases:</strong><br>
+        &bull; If components with <strong>different step values</strong> are mixed in the same FOV &rarr; Cover FAIL<br>
+        &bull; If a component assigned to an FOV is <strong>outside the FOV area</strong> &rarr; Cover FAIL<br>
+        &bull; If a <strong>side=1 component</strong> is outside the Side FOV (fov/2 = 25&times;25) area &rarr; Cover FAIL<br>
+        &bull; If the FOV order is <strong>not in descending type order</strong> &rarr; Order FAIL (e.g., Barcode &rarr; Fiducial order)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 4: Final Result ===== -->
+<div class="section" id="s4" style="background:#fff">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--accent)">4</span> Final Result</div>
+    <div class="section-desc">Review the final output_fov.csv from the Greedy solution and the pipeline inspection process.</div>
+
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3>output_fov.csv</h3>
+      <table class="ct-table">
+        <tr><th></th><th>x (center)</th><th>y (center)</th><th>comp_idx</th><th>FOV Type</th><th>Side Component?</th></tr>
+        <tr><td><strong>0</strong></td><td>15</td><td>11</td><td>[0]</td><td><span class="tag" style="background:#e8f5e9;color:#2e7d32">2 (Fid)</span></td><td>-</td></tr>
+        <tr><td><strong>1</strong></td><td>138</td><td>16</td><td>[1]</td><td><span class="tag" style="background:#fff3e0;color:#e65100">1 (BC)</span></td><td>-</td></tr>
+        <tr><td><strong>2</strong></td><td>30</td><td>40</td><td>[2, 3, 4]</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>side=1 (#4)</td></tr>
+        <tr><td><strong>3</strong></td><td>74</td><td>55</td><td>[5, 6, 7]</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>side=1 (#7)</td></tr>
+        <tr><td><strong>4</strong></td><td>126</td><td>93</td><td>[8, 9]</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>-</td></tr>
+      </table>
+      <div class="callout callout-info" style="margin-top:8px">
+        <span class="ci">&#x1F4A1;</span>
+        <span><strong>FOV Type</strong> is not explicitly specified in the output. The Checker automatically determines it as the maximum type value among components in comp_idx.<br>
+        <strong>Inspection order rule</strong>: FOV 0(type=2) &ge; FOV 1(type=1) &ge; FOV 2(type=0) &ge; FOV 3(type=0) &ge; FOV 4(type=0) &rarr; <span class="badge-ok">Order: PASS</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Pipeline Inspection Process (Concept)</h3>
+      <p style="font-size:.9rem;margin-bottom:16px">The AOI equipment uses a <strong>pipeline structure</strong> to perform capture, reconstruction, and inspection simultaneously. FOVs are processed in order, with reconstruction/inspection of the previous FOV overlapping with the capture of the next FOV.</p>
+      <div id="pipeline-chart" style="max-width:620px"></div>
+      <div class="callout callout-new" style="margin-top:12px">
+        <span class="ci">&#x1F4A1;</span>
+        <span>The exact CT is automatically calculated by the Checker, considering movement time (trapezoidal velocity profile based on v and a), Side capture time, inspection time distribution, etc.
+        Run <code>python 2_run.py --solver greedy</code> to compute the CT. Then run <code>python 3_view.py --solver greedy --open</code> to generate and open the result Viewer (<code>result.html</code>).</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Verification Summary</h3>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-value" style="color:var(--green)">PASS</div><div class="kpi-label">Cover</div></div>
+        <div class="kpi"><div class="kpi-value" style="color:var(--green)">PASS</div><div class="kpi-label">Order</div></div>
+        <div class="kpi"><div class="kpi-value">5</div><div class="kpi-label">FOVs</div></div>
+        <div class="kpi"><div class="kpi-value">10</div><div class="kpi-label">Components</div></div>
+      </div>
+      <div class="callout callout-new" style="margin-top:12px">
+        <span class="ci">&#x2705;</span>
+        <span>All 10 components are covered with 5 FOVs. Greedy is a simple but reasonable baseline solution.
+        For better CT, consider fine-tuning FOV positions, optimizing movement paths, and using component clustering algorithms.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: Penalty Solver ===== -->
+<div class="section" id="s5">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--red)">5</span> Penalty Solver — Constraint Violation Behavior</div>
+    <div class="section-desc">When components are not included in any FOV or the inspection order is violated, the Checker automatically runs <strong>penalty_solver</strong> to recalculate the CT.</div>
+
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3><span style="color:var(--red)">&#x26A0;</span> How the Penalty Solver Works</h3>
+      <div style="font-size:.9rem;line-height:1.8;margin-bottom:16px">
+        <p><strong>1. Constraint violation detected:</strong> If <code>cover_all_components()</code> or <code>fov_inspection_order()</code> returns <span class="badge-fail">FAIL</span>, the penalty_solver is triggered.</p>
+        <p style="margin-top:8px"><strong>2. Solver output discarded:</strong> The participant's <code>output_fov.csv</code> is <strong>completely ignored</strong>, and FOVs are re-placed from scratch using the greedy baseline solution below.</p>
+        <p style="margin-top:8px"><strong>3. Greedy baseline solution:</strong> Fiducial-only FOVs → origin-distance sorted component placement at FOV top-left → absorb same-step neighbors → big component tiling → nearest neighbor path ordering.</p>
+      </div>
+
+      <div class="algo-box">Algorithm: Penalty Solver (Greedy Baseline)
+────────────────────────────────────
+1.  Fiducial(type=2) → individual FOV each           <span style="color:#6a9955">// 1 per FOV</span>
+2.  remaining ← unassigned components, sorted by dist to (0,0)
+3.  FOR EACH seed IN remaining:
+4.    fov_center ← (seed.tl + fov_size/2)            <span style="color:#6a9955">// component at FOV top-left</span>
+5.    covered ← all same-step unassigned comps inside FOV
+6.  Big components → tiling grid FOVs
+7.  type descending (2→1→0) × nearest neighbor order
+8.  RETURN ordered FOVs → Checker recalculates CT</div>
+
+      <div style="margin-top:16px;padding:16px;background:#fff5f5;border:1px solid #ef9a9a;border-radius:10px">
+        <div style="font-weight:700;color:var(--red);margin-bottom:10px;font-size:.92rem">&#x26A0; Penalty Effect</div>
+        <div style="font-size:.82rem;line-height:1.7;color:var(--text2)">
+          &bull; Your <strong>optimization results are completely discarded</strong> and replaced with the greedy baseline solution.<br>
+          &bull; The greedy baseline is reasonable but far from optimal, so CT will be <strong>significantly higher</strong> than a well-tuned solver.<br>
+          &bull; Finding better FOV placements while satisfying all constraints is the core challenge of this contest.
+        </div>
+      </div>
+
+      <div class="callout callout-info" style="margin-top:12px">
+        <span class="ci">&#x1F4A1;</span>
+        <div>
+          <strong>Behavior in code:</strong> In <code>2_run.py</code>, if <code>cover</code> or <code>order</code> is False, <code>c.penalty_solver()</code> is automatically called.
+          <div class="code-block" style="margin-top:8px;font-size:.78rem;padding:10px">c = Checker(path)
+cover = c.cover_all_components()
+order = c.fov_inspection_order()
+<span style="color:#569cd6">if not</span> cover <span style="color:#569cd6">or not</span> order:
+    c.penalty_solver()        <span style="color:#6A9955"># Discard solver output → replace with greedy baseline</span>
+ct = c.compute_ct()           <span style="color:#6A9955"># Recalculate CT based on penalty FOVs</span></div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn" style="margin-top:12px">
+        <span class="ci">&#x26A0;</span>
+        <span><strong>Always verify <code>Cover: PASS</code> and <code>Order: PASS</code>!</strong>
+        When penalty_solver is applied, your optimization is discarded. Be sure to check the Cover/Order results in the <code>2_run.py</code> output.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="container">AOI Inspection Equipment Cycle Time Optimization &mdash; Tutorial &nbsp;|&nbsp; 4th Koh Young AI Contest</div>
+</div>
+</div>
+
+<div class="lang-ko">
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"><img src="ky_logo.png" alt="Koh Young Technology"></div>
+  <div class="hero-content">
+    <div class="container">
+      <h1>AOI 문제풀이 튜토리얼</h1>
+      <div class="subtitle">소규모 예제(10개 부품)로 배우는 Greedy FOV 배치</div>
+    </div>
+  </div>
+</div>
+
+
+<div style="background:#fff;border-bottom:2px solid #e0e0e0;padding:8px 0;text-align:center;font-size:.85rem;position:sticky;top:0;z-index:999">
+  <div class="container" style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">
+    <a href="ICCAS_2026_CONTEST_RULES.html" class="nav-link" data-doc="대회규칙" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">대회규칙 ★</a>
+    <a href="ICCAS_2026_CONTEST_DATA_DESCRIPTION.html" class="nav-link" data-doc="데이터 설명" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">데이터 설명</a>
+    <a href="ICCAS_2026_CONTEST_GUIDE.html" class="nav-link" data-doc="실무가이드" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">실무가이드</a>
+    <a href="ICCAS_2026_CONTEST_TUTORIAL.html" class="nav-link" data-doc="튜토리얼" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#fff;background:#1a73e8;transition:all .2s">튜토리얼</a>
+    <a href="https://github.com/iccas2026-kohyoung/contest" class="nav-link" target="_blank" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">GitHub ↗</a>
+  </div>
+</div>
+
+<div style="background:#e8f0fe;border:1px solid #c2d7f2;border-radius:8px;padding:10px 16px;margin:12px auto;max-width:920px;font-size:.85rem;text-align:center">
+  &#x1F4D8; 이 문서는 보조 자료입니다. 공식 대회 규칙은 <a href="ICCAS_2026_CONTEST_RULES.html" style="color:#1a73e8;font-weight:700">대회규칙 ★</a>을 참고하세요.
+</div>
+
+<!-- ===== SECTION 1: 입력 데이터 확인 ===== -->
+<div class="section" id="ko-s1">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--primary)">1</span> 입력 데이터 확인</div>
+    <div class="section-desc">예제 PCB 데이터를 살펴봅니다. 160&times;120mm PCB 위에 10개 부품이 배치되어 있습니다.</div>
+
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3>PCB 부품 배치도</h3>
+      <div id="ko-pcb-overview" style="max-width:620px;margin:0 auto"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="swatch" style="background:#43a047"></div>Fiducial (type=2)</div>
+        <div class="legend-item"><div class="swatch" style="background:#e67e00"></div>Barcode (type=1)</div>
+        <div class="legend-item"><div class="swatch" style="background:#1565c0"></div>Normal (type=0)</div>
+        <div class="legend-item"><div class="swatch" style="background:#42a5f5;border:1px dashed #1565c0"></div>Side (side=1)</div>
+        <div class="legend-item"><div class="swatch" style="background:none;border:1.5px dashed #0d904f"></div>Side FOV (fov/2)</div>
+        <div class="legend-item"><div class="swatch" style="background:rgba(156,39,176,0.12);border:1px dashed #9c27b0"></div>단차 영역 (step=1)</div>
+      </div>
+    </div>
+
+    <div class="callout callout-warn">
+      <span class="ci">&#x1F6E0;</span>
+      <div><strong>kohyoung_solver 사용 시 Python 3.11 필요</strong><br>
+        제공되는 <code>kohyoung_solver</code> 패키지는 <strong>Python 3.11</strong> 환경에서만 동작합니다.
+        다른 버전(3.10, 3.12 등)에서는 import 오류가 발생할 수 있으니, 반드시 Python 3.11로 가상환경을 구성하세요.<br>
+        <code style="background:#fff3e0;padding:2px 6px;border-radius:4px;font-size:.82rem">conda create -n iccas_contest python=3.11</code> 또는 <code style="background:#fff3e0;padding:2px 6px;border-radius:4px;font-size:.82rem">pyenv install 3.11</code></div>
+    </div>
+
+    <div class="tab-group">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="showTab(event,'ko-tab-comp')">input_component.csv</button>
+        <button class="tab-btn" onclick="showTab(event,'ko-tab-size')">input_size.csv</button>
+        <button class="tab-btn" onclick="showTab(event,'ko-tab-param')">input_parameter.csv</button>
+        <button class="tab-btn" onclick="showTab(event,'ko-tab-step')">input_step_region.csv</button>
+      </div>
+      <div class="tab-panel active" id="ko-tab-comp">
+        <table class="ct-table">
+          <tr><th></th><th>tl_x</th><th>tl_y</th><th>br_x</th><th>br_y</th><th>type</th><th>side</th><th>step</th><th>time</th></tr>
+          <tr><td><strong>0</strong></td><td>12</td><td>8</td><td>18</td><td>14</td><td><span class="tag" style="background:#e8f5e9;color:#2e7d32">2</span></td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td><strong>1</strong></td><td>130</td><td>10</td><td>145</td><td>22</td><td><span class="tag" style="background:#fff3e0;color:#e65100">1</span></td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td><strong>2</strong></td><td>20</td><td>45</td><td>32</td><td>55</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>3</strong></td><td>35</td><td>38</td><td>45</td><td>48</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>4</strong></td><td>25</td><td>35</td><td>35</td><td>43</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td><strong>1</strong></td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>5</strong></td><td>70</td><td>40</td><td>85</td><td>52</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>6</strong></td><td>80</td><td>55</td><td>95</td><td>65</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>7</strong></td><td>68</td><td>50</td><td>78</td><td>60</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td><strong>1</strong></td><td>0</td><td>0.3</td></tr>
+          <tr><td><strong>8</strong></td><td>110</td><td>85</td><td>125</td><td>95</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td><strong>1</strong></td><td>0.3</td></tr>
+          <tr><td><strong>9</strong></td><td>128</td><td>90</td><td>142</td><td>100</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>0</td><td><strong>1</strong></td><td>0.3</td></tr>
+        </table>
+        <div class="callout callout-info" style="margin-top:8px">
+          <span class="ci">&#x1F4A1;</span>
+          <span><strong>type</strong>: 2=Fiducial, 1=Barcode, 0=Normal &nbsp;|&nbsp; <strong>side</strong>: 1이면 Side 카메라 촬영 필요 (FOV의 절반 크기 영역에 들어와야 함) &nbsp;|&nbsp; <strong>step</strong>: 1이면 단차 영역 부품</span>
+        </div>
+      </div>
+      <div class="tab-panel" id="ko-tab-size">
+        <table class="ct-table">
+          <tr><th>pcb_x</th><th>pcb_y</th><th>fov_x</th><th>fov_y</th></tr>
+          <tr><td>160</td><td>120</td><td>50</td><td>50</td></tr>
+        </table>
+        <div class="callout callout-info"><span class="ci">&#x1F4A1;</span><span>PCB 크기 160&times;120mm, FOV 크기 50&times;50mm</span></div>
+      </div>
+      <div class="tab-panel" id="ko-tab-param">
+        <table class="ct-table">
+          <tr><th>capture_time</th><th>recon_time</th><th>side_capture_time</th><th>max_core</th><th>v_x</th><th>v_y</th><th>a_x</th><th>a_y</th></tr>
+          <tr><td>0.5</td><td>0.5</td><td>0.25</td><td>8</td><td>1000</td><td>1000</td><td>9800</td><td>9800</td></tr>
+        </table>
+        <div class="callout callout-info"><span class="ci">&#x1F4A1;</span><span>촬영 0.5s, 복원 0.5s, Side 추가 0.25s, 최대 8코어, 이동속도 1000mm/s, 가속도 9800mm/s&sup2;<br><em>참고: v_x, v_y (200~1000), a_x, a_y (4900~9800)는 데이터셋마다 다릅니다. 이 예시는 v=1000, a=9800 기준입니다.</em></span></div>
+      </div>
+      <div class="tab-panel" id="ko-tab-step">
+        <table class="ct-table">
+          <tr><th></th><th>tl_x</th><th>tl_y</th><th>br_x</th><th>br_y</th></tr>
+          <tr><td>0</td><td>100</td><td>75</td><td>160</td><td>120</td></tr>
+        </table>
+        <div class="callout callout-info"><span class="ci">&#x1F4A1;</span><span>단차 영역: PCB 우하단 (100,75)~(160,120). 이 영역 안의 부품은 step=1</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 2: Step-by-Step Greedy 풀이 ===== -->
+<div class="section" id="ko-s2" style="background:#fff">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--green)">2</span> Step-by-Step Greedy 풀이</div>
+    <div class="section-desc">Greedy 알고리즘으로 FOV를 하나씩 배치하는 과정을 따라가 봅니다. 아래 버튼을 클릭하세요.</div>
+
+    <div class="stepper-bar">
+      <button class="step-btn active" onclick="setStepKR(0)">초기</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStepKR(1)">FOV &nbsp;&#9312;</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStepKR(2)">FOV &nbsp;&#9313;</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStepKR(3)">FOV &nbsp;&#9314;</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStepKR(4)">FOV &nbsp;&#9315;</button>
+      <span class="step-arrow">&rarr;</span>
+      <button class="step-btn" onclick="setStepKR(5)">FOV &nbsp;&#9316;</button>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3 id="ko-step-title">초기 상태</h3>
+      <div class="grid-2">
+        <div id="ko-pcb-stepper" style="max-width:500px"></div>
+        <div>
+          <div class="desc-panel" id="ko-step-desc"></div>
+          <div class="callout callout-new" id="ko-step-tip" style="margin-top:12px"></div>
+          <div class="code-block" id="ko-step-fov-detail" style="display:none;margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-value" id="ko-kpi-covered" style="color:var(--green)">0</div><div class="kpi-label">커버된 부품</div></div>
+      <div class="kpi"><div class="kpi-value" id="ko-kpi-uncovered" style="color:var(--red)">10</div><div class="kpi-label">미할당 부품</div></div>
+      <div class="kpi"><div class="kpi-value" id="ko-kpi-fovs" style="color:var(--primary)">0</div><div class="kpi-label">배치된 FOV</div></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>Greedy 알고리즘 의사 코드</h3>
+      <div class="algo-box">Algorithm: Greedy FOV Placement
+────────────────────────────────────
+<strong>Phase 1: Fiducial 단독 FOV</strong>
+1.  FOR EACH comp WHERE type == 2:
+2.    FOV 생성(center = comp.center, comps = [comp])  <span style="color:#ce9178">// 1 Fiducial per FOV</span>
+
+<strong>Phase 2: 원점 거리순 Greedy 배치</strong>
+3.  remaining &larr; 미할당 부품을 (0,0) 거리 오름차순 정렬
+4.  FOR EACH seed IN remaining:
+5.    fov_center &larr; (seed.tl_x + fov_w/2, seed.tl_y + fov_h/2)  <span style="color:#ce9178">// 부품이 FOV 좌상단</span>
+6.    fov_center &larr; PCB 경계 내로 클램핑
+7.    covered &larr; FOV 안에 완전히 들어가는 같은 step 미할당 부품
+8.    <span style="color:#ce9178">주의: side=1 부품은 Side FOV(fov/2) 영역 기준 체크</span>
+9.    FOV 생성(fov_center, covered)
+
+<strong>Phase 3: Big Component 타일링</strong>
+10. FOR EACH comp WHERE size &gt; FOV:
+11.   ceil(w/fov_w) &times; ceil(h/fov_h) 격자 FOV 배치
+
+<strong>Phase 4: 경로 결정</strong>
+12. type 내림차순 그룹(2 &rarr; 1 &rarr; 0) &times; nearest neighbor 순서</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: 커버리지 에러 시연 ===== -->
+<div class="section" id="ko-s3">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--red)">3</span> 커버리지 에러 시연</div>
+    <div class="section-desc">부품이 FOV에 포함되지 않으면 어떻게 될까요? Checker와 Viewer에서의 에러 표시를 확인합니다.</div>
+
+    <div class="grid-2">
+      <!-- 정상 케이스 -->
+      <div class="card" style="border-left:4px solid var(--green)">
+        <h3><span style="color:var(--green)">&#10003;</span> 정상 결과 (Cover: PASS)</h3>
+        <div class="viewer-mock">
+          <div class="viewer-header">Combined View &mdash; 정상</div>
+          <div id="ko-pcb-correct" style="padding:8px;background:#fafafa"></div>
+          <div class="viewer-footer">
+            <span class="badge-ok">Cover: PASS</span>
+            <span class="badge-ok">Order: PASS</span>
+            <span class="badge-neutral">FOVs: 5</span>
+          </div>
+        </div>
+        <div class="code-block" style="font-size:.78rem">,x,y,comp_idx
+0,15,11,[0]
+1,138,16,[1]
+2,30,40,"[2, 3, 4]"
+3,74,55,"[5, 6, 7]"
+4,126,93,"[8, 9]"</div>
+      </div>
+
+      <!-- 에러 케이스 -->
+      <div class="card" style="border-left:4px solid var(--red)">
+        <h3><span style="color:var(--red)">&#10007;</span> 에러 결과 (Cover: FAIL)</h3>
+        <div class="viewer-mock">
+          <div class="viewer-header" style="background:#b71c1c">Combined View &mdash; 에러</div>
+          <div id="ko-pcb-error" style="padding:8px;background:#fafafa"></div>
+          <div class="viewer-footer">
+            <span class="badge-fail">Cover: FAIL</span>
+            <span class="badge-ok">Order: PASS</span>
+            <span class="badge-neutral">FOVs: 5</span>
+          </div>
+        </div>
+        <div class="code-block" style="font-size:.78rem">,x,y,comp_idx
+0,15,11,[0]
+1,138,16,[1]
+2,30,40,"[2, 3, 4]"
+3,95,46,"[5, 6]"       <span style="color:#f44336">&larr; #7 누락!</span>
+4,126,93,"[8, 9]"</div>
+      </div>
+    </div>
+
+    <div class="callout callout-danger" style="margin-top:8px">
+      <span class="ci">&#x26A0;</span>
+      <div>
+        <strong>부품 #7이 어떤 FOV에도 포함되지 않았습니다.</strong><br>
+        Checker의 <code>cover_all_components()</code>가 미커버 부품을 감지하면:<br>
+        &bull; 해당 부품의 <code>error</code> 플래그가 1로 설정됩니다<br>
+        &bull; Viewer에서 해당 부품이 <strong style="color:#d63031">빨간색(#d63031)</strong>으로 표시됩니다<br>
+        &bull; 에러 FOV는 <strong style="color:#cd4547">빨간 테두리(#cd4547)</strong>와 <strong style="color:#cd6347">빨간 배경(rgba(205,99,71,0.2))</strong>으로 표시됩니다<br>
+        &bull; Cover 결과가 <span class="badge-fail">FAIL</span>로 표시됩니다
+      </div>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:8px">
+      <span class="ci">&#x1F4A1;</span>
+      <div>
+        <strong>기타 에러 케이스:</strong><br>
+        &bull; FOV 안에 <strong>step이 다른 부품</strong>이 섞여 있으면 Cover FAIL<br>
+        &bull; FOV에 할당된 부품이 <strong>FOV 영역 밖</strong>에 있으면 Cover FAIL<br>
+        &bull; <strong>side=1 부품</strong>이 Side FOV(fov/2 = 25&times;25) 영역 밖에 있으면 Cover FAIL<br>
+        &bull; FOV 순서가 <strong>type 내림차순이 아니면</strong> Order FAIL (예: Barcode &rarr; Fiducial 순서)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 4: 최종 결과 ===== -->
+<div class="section" id="ko-s4" style="background:#fff">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--accent)">4</span> 최종 결과</div>
+    <div class="section-desc">Greedy 풀이의 최종 output_fov.csv와 파이프라인 검사 과정을 확인합니다.</div>
+
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3>output_fov.csv</h3>
+      <table class="ct-table">
+        <tr><th></th><th>x (중심)</th><th>y (중심)</th><th>comp_idx</th><th>FOV Type</th><th>Side 부품?</th></tr>
+        <tr><td><strong>0</strong></td><td>15</td><td>11</td><td>[0]</td><td><span class="tag" style="background:#e8f5e9;color:#2e7d32">2 (Fid)</span></td><td>-</td></tr>
+        <tr><td><strong>1</strong></td><td>138</td><td>16</td><td>[1]</td><td><span class="tag" style="background:#fff3e0;color:#e65100">1 (BC)</span></td><td>-</td></tr>
+        <tr><td><strong>2</strong></td><td>30</td><td>40</td><td>[2, 3, 4]</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>side=1 (#4)</td></tr>
+        <tr><td><strong>3</strong></td><td>74</td><td>55</td><td>[5, 6, 7]</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>side=1 (#7)</td></tr>
+        <tr><td><strong>4</strong></td><td>126</td><td>93</td><td>[8, 9]</td><td><span class="tag" style="background:#e3f2fd;color:#1565c0">0</span></td><td>-</td></tr>
+      </table>
+      <div class="callout callout-info" style="margin-top:8px">
+        <span class="ci">&#x1F4A1;</span>
+        <span><strong>FOV Type</strong>은 output에 명시하지 않습니다. Checker가 comp_idx의 부품 type 중 최대값으로 자동 결정합니다.<br>
+        <strong>검사 순서 규칙</strong>: FOV 0(type=2) &ge; FOV 1(type=1) &ge; FOV 2(type=0) &ge; FOV 3(type=0) &ge; FOV 4(type=0) &rarr; <span class="badge-ok">Order: PASS</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Pipeline 검사 과정 (개념)</h3>
+      <p style="font-size:.9rem;margin-bottom:16px">AOI 장비는 <strong>파이프라인 구조</strong>로 촬상&middot;복원&middot;검사를 동시에 진행합니다. FOV가 순서대로 처리되며, 이전 FOV의 복원/검사와 다음 FOV의 촬상이 겹칩니다.</p>
+      <div id="ko-pipeline-chart" style="max-width:620px"></div>
+      <div class="callout callout-new" style="margin-top:12px">
+        <span class="ci">&#x1F4A1;</span>
+        <span>정확한 CT는 이동 시간(v, a 기반 사다리꼴 속도 프로파일), Side 촬영 시간, 검사 시간 분배 등을 고려하여 Checker가 자동으로 계산합니다.
+        <code>python 2_run.py --solver greedy</code>로 CT를 산출하고, <code>python 3_view.py --solver greedy --open</code>으로 결과 Viewer(<code>result.html</code>)를 생성·확인할 수 있습니다.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>검증 요약</h3>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-value" style="color:var(--green)">PASS</div><div class="kpi-label">Cover</div></div>
+        <div class="kpi"><div class="kpi-value" style="color:var(--green)">PASS</div><div class="kpi-label">Order</div></div>
+        <div class="kpi"><div class="kpi-value">5</div><div class="kpi-label">FOVs</div></div>
+        <div class="kpi"><div class="kpi-value">10</div><div class="kpi-label">Components</div></div>
+      </div>
+      <div class="callout callout-new" style="margin-top:12px">
+        <span class="ci">&#x2705;</span>
+        <span>5개 FOV로 10개 부품을 모두 커버했습니다. Greedy는 간단하지만 합리적인 기본 풀이입니다.
+        더 나은 CT를 위해서는 FOV 위치 미세 조정, 이동 경로 최적화, 부품 클러스터링 알고리즘 등을 고려해 보세요.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: Penalty Solver ===== -->
+<div class="section" id="ko-s5">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--red)">5</span> Penalty Solver — 제약 위반 시 동작</div>
+    <div class="section-desc">부품이 FOV에 포함되지 않거나 검사 순서를 위반하면, Checker가 <strong>penalty_solver</strong>를 자동 실행하여 CT를 재계산합니다.</div>
+
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3><span style="color:var(--red)">&#x26A0;</span> Penalty Solver 동작 방식</h3>
+      <div style="font-size:.9rem;line-height:1.8;margin-bottom:16px">
+        <p><strong>1. 제약 위반 감지:</strong> <code>cover_all_components()</code> 또는 <code>fov_inspection_order()</code>가 <span class="badge-fail">FAIL</span>이면 penalty_solver가 동작합니다.</p>
+        <p style="margin-top:8px"><strong>2. Solver 출력 폐기:</strong> 참가자의 solver가 출력한 <code>output_fov.csv</code>를 <strong>완전히 무시</strong>하고, 아래 그리디 기본 풀이로 처음부터 FOV를 재배치합니다.</p>
+        <p style="margin-top:8px"><strong>3. 그리디 기본 풀이:</strong> Fiducial 단독 FOV → 원점 거리순으로 부품을 FOV 좌상단에 배치 → 같은 FOV에 들어가는 부품 흡수 → Big component 타일링 → Nearest neighbor 경로 결정.</p>
+      </div>
+
+      <div class="algo-box">Algorithm: Penalty Solver (Greedy Baseline)
+────────────────────────────────────
+1.  Fiducial(type=2) → 각각 단독 FOV              <span style="color:#6a9955">// 1 per FOV</span>
+2.  remaining ← 미할당 부품, (0,0) 거리순 정렬
+3.  FOR EACH seed IN remaining:
+4.    fov_center ← (seed.tl + fov_size/2)         <span style="color:#6a9955">// 부품이 FOV 좌상단</span>
+5.    covered ← FOV 안 같은 step 미할당 부품 전부 흡수
+6.  Big component → 타일링 격자 FOV
+7.  type 내림차순(2→1→0) × nearest neighbor 순서
+8.  RETURN ordered FOVs → Checker가 CT 재계산</div>
+
+      <div style="margin-top:16px;padding:16px;background:#fff5f5;border:1px solid #ef9a9a;border-radius:10px">
+        <div style="font-weight:700;color:var(--red);margin-bottom:10px;font-size:.92rem">&#x26A0; Penalty 효과</div>
+        <div style="font-size:.82rem;line-height:1.7;color:var(--text2)">
+          &bull; 참가자의 <strong>최적화 결과가 전부 폐기</strong>되고 기본 그리디 풀이로 대체됩니다.<br>
+          &bull; 그리디 기본 풀이는 합리적이지만 최적과는 거리가 있으므로, 잘 만든 solver 대비 <strong>CT가 크게 증가</strong>합니다.<br>
+          &bull; 제약 조건을 만족하면서 더 좋은 FOV 배치를 찾는 것이 대회의 핵심입니다.
+        </div>
+      </div>
+
+      <div class="callout callout-info" style="margin-top:12px">
+        <span class="ci">&#x1F4A1;</span>
+        <div>
+          <strong>코드에서의 동작:</strong> <code>2_run.py</code>에서 <code>cover</code> 또는 <code>order</code>가 False이면 자동으로 <code>c.penalty_solver()</code>가 호출됩니다.
+          <div class="code-block" style="margin-top:8px;font-size:.78rem;padding:10px">c = Checker(path)
+cover = c.cover_all_components()
+order = c.fov_inspection_order()
+<span style="color:#569cd6">if not</span> cover <span style="color:#569cd6">or not</span> order:
+    c.penalty_solver()        <span style="color:#6A9955"># solver 출력 폐기 → 그리디 기본 풀이로 대체</span>
+ct = c.compute_ct()           <span style="color:#6A9955"># penalty FOV 기준 CT 재계산</span></div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn" style="margin-top:12px">
+        <span class="ci">&#x26A0;</span>
+        <span><strong>항상 <code>Cover: PASS</code>, <code>Order: PASS</code>를 확인하세요!</strong>
+        penalty_solver가 적용되면 정상 최적화 대비 CT가 수배~수십배 증가합니다. <code>2_run.py</code> 출력에서 Cover/Order 결과를 반드시 점검하세요.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="container">AOI 검사장비 검사 시간 최적화 &mdash; 문제풀이 튜토리얼 &nbsp;|&nbsp; 제4회 고영 AI 경진대회</div>
+</div>
+</div>
+
+<script>
+/* ========== DATA ========== */
+const PCB = {w:160, h:120};
+const FOV_SZ = {w:50, h:50};
+const STEP_RGN = {x1:100, y1:75, x2:160, y2:120};
+
+const COMPS = [
+  {i:0, x1:12,y1:8,x2:18,y2:14, type:2,side:0,step:0},
+  {i:1, x1:130,y1:10,x2:145,y2:22, type:1,side:0,step:0},
+  {i:2, x1:20,y1:45,x2:32,y2:55, type:0,side:0,step:0},
+  {i:3, x1:35,y1:38,x2:45,y2:48, type:0,side:0,step:0},
+  {i:4, x1:25,y1:35,x2:35,y2:43, type:0,side:1,step:0},
+  {i:5, x1:70,y1:40,x2:85,y2:52, type:0,side:0,step:0},
+  {i:6, x1:80,y1:55,x2:95,y2:65, type:0,side:0,step:0},
+  {i:7, x1:68,y1:50,x2:78,y2:60, type:0,side:1,step:0},
+  {i:8, x1:110,y1:85,x2:125,y2:95, type:0,side:0,step:1},
+  {i:9, x1:128,y1:90,x2:142,y2:100, type:0,side:0,step:1},
+];
+
+const FOVS = [
+  {cx:15, cy:11, comps:[0]},
+  {cx:138,cy:16, comps:[1]},
+  {cx:30, cy:40, comps:[2,3,4]},
+  {cx:74, cy:55, comps:[5,6,7]},
+  {cx:126,cy:93, comps:[8,9]},
+];
+
+const ERR_FOVS = [
+  {cx:15, cy:11, comps:[0]},
+  {cx:138,cy:16, comps:[1]},
+  {cx:30, cy:40, comps:[2,3,4]},
+  {cx:95, cy:46, comps:[5,6]},
+  {cx:126,cy:93, comps:[8,9]},
+];
+
+/* ========== SVG RENDERING ========== */
+const SC=2.5, OFF=25;
+function p(v){return v*SC+OFF}
+function s(v){return v*SC}
+
+function buildSvg(opts){
+  const {fovs=[],covered=new Set(),errors=new Set(),highlight=-1,showLabels=true,prefix=''} = opts;
+  var stepLabel = prefix ? '단차 영역 (step=1)' : 'Step Region (step=1)';
+  const vw=s(PCB.w)+OFF*2, vh=s(PCB.h)+OFF*2;
+  let h = '<svg viewBox="0 0 '+vw+' '+vh+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">';
+
+  h += '<defs><pattern id="'+prefix+'sh" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">';
+  h += '<line x1="0" y1="0" x2="0" y2="8" stroke="#9c27b0" stroke-width="1" opacity="0.2"/></pattern></defs>';
+
+  // PCB background
+  h += '<rect x="'+OFF+'" y="'+OFF+'" width="'+s(PCB.w)+'" height="'+s(PCB.h)+'" fill="#e8e0c8" stroke="#999" stroke-width="1.5" rx="4"/>';
+  h += '<text x="'+p(PCB.w/2)+'" y="'+(OFF-7)+'" text-anchor="middle" font-size="11" fill="#666" font-weight="600">PCB ('+PCB.w+'×'+PCB.h+'mm)</text>';
+
+  // Step region
+  var sr=STEP_RGN;
+  h += '<rect x="'+p(sr.x1)+'" y="'+p(sr.y1)+'" width="'+s(sr.x2-sr.x1)+'" height="'+s(sr.y2-sr.y1)+'" fill="url(#'+prefix+'sh)" stroke="none" rx="2"/>';
+  h += '<rect x="'+p(sr.x1)+'" y="'+p(sr.y1)+'" width="'+s(sr.x2-sr.x1)+'" height="'+s(sr.y2-sr.y1)+'" fill="rgba(156,39,176,0.06)" stroke="#9c27b0" stroke-width="1" stroke-dasharray="5,3" rx="2"/>';
+  h += '<text x="'+p((sr.x1+sr.x2)/2)+'" y="'+(p(sr.y1)+14)+'" text-anchor="middle" font-size="9" fill="#9c27b0" font-weight="600">'+stepLabel+'</text>';
+
+  // FOVs
+  var fl = ['①','②','③','④','⑤'];
+  fovs.forEach(function(f,idx){
+    var isHL = idx===highlight;
+    var fx=p(f.cx-FOV_SZ.w/2), fy=p(f.cy-FOV_SZ.h/2), fw=s(FOV_SZ.w), fh=s(FOV_SZ.h);
+    var fill=isHL?'rgba(26,115,232,0.12)':'rgba(13,144,79,0.06)';
+    var stroke=isHL?'#1a73e8':'#0d904f';
+    var sw=isHL?2.5:1.5;
+    var dash=isHL?'':'stroke-dasharray="6,3"';
+    h += '<rect x="'+fx+'" y="'+fy+'" width="'+fw+'" height="'+fh+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" '+dash+' rx="3"/>';
+    h += '<text x="'+(fx+5)+'" y="'+(fy+14)+'" font-size="11" fill="'+stroke+'" font-weight="700">FOV '+fl[idx]+'</text>';
+    // center crosshair
+    h += '<circle cx="'+p(f.cx)+'" cy="'+p(f.cy)+'" r="3" fill="none" stroke="'+stroke+'" stroke-width="1"/>';
+    h += '<line x1="'+(p(f.cx)-5)+'" y1="'+p(f.cy)+'" x2="'+(p(f.cx)+5)+'" y2="'+p(f.cy)+'" stroke="'+stroke+'" stroke-width="0.8"/>';
+    h += '<line x1="'+p(f.cx)+'" y1="'+(p(f.cy)-5)+'" x2="'+p(f.cx)+'" y2="'+(p(f.cy)+5)+'" stroke="'+stroke+'" stroke-width="0.8"/>';
+    var hasSide=f.comps.some(function(ci){return COMPS[ci].side===1;});
+    if(hasSide){
+      var sfx=p(f.cx-FOV_SZ.w/4),sfy=p(f.cy-FOV_SZ.h/4),sfw=s(FOV_SZ.w/2),sfh=s(FOV_SZ.h/2);
+      h+='<rect x="'+sfx+'" y="'+sfy+'" width="'+sfw+'" height="'+sfh+'" fill="none" stroke="'+stroke+'" stroke-width="1.2" stroke-dasharray="4,2" rx="2"/>';
+      h+='<text x="'+(sfx+sfw-2)+'" y="'+(sfy+11)+'" text-anchor="end" font-size="7" fill="'+stroke+'" font-style="italic">Side FOV</text>';
+    }
+  });
+
+  // Components
+  COMPS.forEach(function(c){
+    var isCov=covered.has(c.i), isErr=errors.has(c.i);
+    var fill,stroke,sw=1,dash='';
+    if(isErr){fill='#d63031';stroke='#c0392b';sw=2;}
+    else if(isCov){fill='#27ae60';stroke='#1b7a3e';}
+    else{
+      if(c.type===2){fill='#43a047';stroke='#2e7d32';}
+      else if(c.type===1){fill='#e67e00';stroke='#bf360c';}
+      else if(c.side===1){fill='#42a5f5';stroke='#1565c0';dash='stroke-dasharray="3,2"';}
+      else{fill='#1565c0';stroke='#0d47a1';}
+    }
+    var cx=p(c.x1),cy=p(c.y1),cw=s(c.x2-c.x1),ch=s(c.y2-c.y1);
+    h += '<rect x="'+cx+'" y="'+cy+'" width="'+cw+'" height="'+ch+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" '+dash+' rx="2"/>';
+    if(showLabels){
+      var fs = Math.min(cw,ch)>20 ? 12 : 10;
+      h += '<text x="'+(cx+cw/2)+'" y="'+(cy+ch/2+3.5)+'" text-anchor="middle" font-size="'+fs+'" fill="#fff" font-weight="700" stroke="#000" stroke-width="2.5" paint-order="stroke">'+c.i+'</text>';
+    }
+    if(isErr){
+      h += '<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+cw)+'" y2="'+(cy+ch)+'" stroke="#fff" stroke-width="1.5" opacity="0.6"/>';
+      h += '<line x1="'+(cx+cw)+'" y1="'+cy+'" x2="'+cx+'" y2="'+(cy+ch)+'" stroke="#fff" stroke-width="1.5" opacity="0.6"/>';
+    }
+  });
+
+  h += '</svg>';
+  return h;
+}
+
+/* ========== STEPPER ========== */
+var STEPS = [
+  {
+    fovs:[], covered:[],
+    title:'Initial State',
+    desc:'<p><strong>10 components</strong> are placed on the PCB.</p><p>&#x1F7E2; Fiducial (type=2): 1, &#x1F7E0; Barcode (type=1): 1, &#x1F535; Normal (type=0): 8</p><p>Among them, there are 2 Side components (side=1): #4 and #7, and 2 step components (step=1): #8 and #9.</p><p>Now let\'s place FOVs one by one using the <strong>Greedy algorithm</strong>.</p>',
+    tip:'Greedy: At each step, select the FOV position that covers the <strong>most unassigned components</strong>.',
+    fovDetail:null, highlight:-1
+  },
+  {
+    fovs:[FOVS[0]], covered:[0],
+    title:'STEP 1: FOV ① Placement — Fiducial (type=2)',
+    desc:'<p>Following the inspection order rule (descending type order), we start with <strong>type=2 (Fiducial)</strong>.</p><p>Since Fiducials define the PCB coordinate origin, they <strong>must be placed in the first FOV exclusively</strong>. No other components are allowed in the Fiducial FOV.</p><p>Place an FOV at the center <strong>(15, 11)</strong> of Fiducial component #0 to cover it alone.</p>',
+    tip:'<strong>Fiducials must be in the first FOV exclusively</strong>. No other components allowed!',
+    fovDetail:'FOV ①  |  Center: (15, 11)  |  Type: 2  |  Covers: #0 (dedicated)', highlight:0
+  },
+  {
+    fovs:[FOVS[0],FOVS[1]], covered:[0,1],
+    title:'STEP 2: FOV ② Placement — Barcode (type=1)',
+    desc:'<p>Next, we place <strong>type=1 (Barcode)</strong>.</p><p>Barcodes are PCB model identifiers. Unlike Fiducials, Barcodes can be grouped with other components. However, in this example, there are no nearby components to group, so it is <strong>placed alone</strong>.</p><p>Place an FOV at the center <strong>(138, 16)</strong> of Barcode component #1.</p>',
+    tip:'Barcodes <strong>can be grouped</strong> with other components. Only Fiducials require the first FOV exclusively!',
+    fovDetail:'FOV ②  |  Center: (138, 16)  |  Type: 1  |  Covers: #1', highlight:1
+  },
+  {
+    fovs:FOVS.slice(0,3), covered:[0,1,2,3,4],
+    title:'STEP 3: FOV ③ Placement — Upper-left Cluster',
+    desc:'<p>Now we place <strong>type=0 (Normal)</strong> components. Multiple Normal components can be grouped into a single FOV.</p><p>Place an FOV at the bounding box center <strong>(30, 40)</strong> of the 3 left-side components <strong>(#2, #3, #4)</strong> to cover all of them.</p><p>Component #4 is a Side component (side=1), so it must fit within the <strong>Side camera FOV (25×25)</strong>. This is verified against the half-size area (fov/2) centered on the FOV center.</p>',
+    tip:'<strong>Side components</strong> must be within the <strong>fov_x/2 × fov_y/2</strong> area centered on the FOV. Half of the regular FOV (50×50) = 25×25!',
+    fovDetail:'FOV ③  |  Center: (30, 40)  |  Type: 0  |  Covers: #2, #3, #4 (Side: #4)', highlight:2
+  },
+  {
+    fovs:FOVS.slice(0,4), covered:[0,1,2,3,4,5,6,7],
+    title:'STEP 4: FOV ④ Placement — Center Cluster',
+    desc:'<p>Group the 3 center components <strong>(#5, #6, #7)</strong> into a single FOV.</p><p>Component #7 is a Side component (side=1), so it must fit within the <strong>Side FOV (25×25)</strong>. The Side area centered at FOV center (74, 55) is (61.5, 42.5)~(86.5, 67.5), which contains #7.</p><p>The side_capture_time (0.25s) is added to this FOV\'s capture time.</p>',
+    tip:'Only components with the <strong>same step level</strong> (step=0) can be grouped together. Mixing different step values causes Cover FAIL!',
+    fovDetail:'FOV ④  |  Center: (74, 55)  |  Type: 0  |  Covers: #5, #6, #7 (Side: #7)', highlight:3
+  },
+  {
+    fovs:FOVS.slice(0,5), covered:[0,1,2,3,4,5,6,7,8,9],
+    title:'STEP 5: FOV ⑤ Placement — Step Region (step=1)',
+    desc:'<p>Finally, cover the 2 components (#8, #9) in the <strong>step region (step=1)</strong>.</p><p>Step region components must be <strong>separated</strong> from step=0 components.</p><p style="font-size:1rem;font-weight:700;color:var(--green);margin-top:12px">&#x2705; All components are now covered!</p><p>Inspection order: ①(type=2) → ②(type=1) → ③④⑤(type=0) — the descending type order rule is also satisfied.</p>',
+    tip:'<strong>5 FOVs</strong> cover all 10 components! Cover: PASS, Order: PASS',
+    fovDetail:'FOV ⑤  |  Center: (126, 93)  |  Type: 0  |  Covers: #8, #9', highlight:4
+  }
+];
+
+function setStep(idx){
+  var step=STEPS[idx];
+  var section=document.querySelector('.lang-en');
+  section.querySelectorAll('.step-btn').forEach(function(btn,i){
+    btn.classList.remove('active','done');
+    if(i===idx) btn.classList.add('active');
+    else if(i<idx) btn.classList.add('done');
+  });
+  document.getElementById('pcb-stepper').innerHTML = buildSvg({
+    fovs:step.fovs, covered:new Set(step.covered), highlight:step.highlight
+  });
+  document.getElementById('step-title').textContent = step.title;
+  document.getElementById('step-desc').innerHTML = step.desc;
+  document.getElementById('step-tip').innerHTML = '<span class="ci">&#x1F4A1;</span><span>'+step.tip+'</span>';
+  var fd = document.getElementById('step-fov-detail');
+  if(step.fovDetail){ fd.textContent=step.fovDetail; fd.style.display='block'; }
+  else fd.style.display='none';
+  document.getElementById('kpi-covered').textContent = step.covered.length;
+  document.getElementById('kpi-uncovered').textContent = 10-step.covered.length;
+  document.getElementById('kpi-fovs').textContent = step.fovs.length;
+}
+
+/* ========== KOREAN STEPPER ========== */
+var STEPS_KR = [
+  {
+    fovs:[], covered:[],
+    title:'초기 상태',
+    desc:'<p>PCB 위에 <strong>10개의 부품</strong>이 배치되어 있습니다.</p><p>&#x1F7E2; Fiducial (type=2): 1개, &#x1F7E0; Barcode (type=1): 1개, &#x1F535; Normal (type=0): 8개</p><p>이 중 Side 부품(side=1)이 2개(#4, #7), step 부품(step=1)이 2개(#8, #9) 있습니다.</p><p>이제 <strong>Greedy 알고리즘</strong>으로 FOV를 하나씩 배치해 봅시다.</p>',
+    tip:'Greedy: 매 단계에서 <strong>가장 많은 미할당 부품</strong>을 커버하는 FOV 위치를 선택합니다.',
+    fovDetail:null, highlight:-1
+  },
+  {
+    fovs:[FOVS[0]], covered:[0],
+    title:'STEP 1: FOV ① 배치 — Fiducial (type=2)',
+    desc:'<p>검사 순서 규칙(type 내림차순)에 따라 <strong>type=2 (Fiducial)</strong>부터 시작합니다.</p><p>Fiducial은 PCB 좌표 원점을 정의하므로 <strong>반드시 첫 번째 FOV에 단독 배치</strong>해야 합니다. Fiducial FOV에는 다른 부품을 포함할 수 없습니다.</p><p>Fiducial 부품 #0의 중심 <strong>(15, 11)</strong>에 FOV를 배치하여 단독으로 커버합니다.</p>',
+    tip:'<strong>Fiducial은 반드시 첫 번째 FOV에 단독 배치!</strong> 다른 부품 포함 불가!',
+    fovDetail:'FOV ①  |  중심: (15, 11)  |  Type: 2  |  커버: #0 (단독)', highlight:0
+  },
+  {
+    fovs:[FOVS[0],FOVS[1]], covered:[0,1],
+    title:'STEP 2: FOV ② 배치 — Barcode (type=1)',
+    desc:'<p>다음으로 <strong>type=1 (Barcode)</strong>을 배치합니다.</p><p>Barcode는 PCB 모델 구분자입니다. Fiducial과 달리 다른 부품과 함께 그룹화할 수 있습니다. 하지만 이 예제에서는 근처에 그룹화할 부품이 없어 <strong>단독 배치</strong>합니다.</p><p>Barcode 부품 #1의 중심 <strong>(138, 16)</strong>에 FOV를 배치합니다.</p>',
+    tip:'Barcode는 다른 부품과 <strong>함께 배치 가능</strong>합니다. 첫 번째 FOV 단독 배치는 Fiducial만 해당!',
+    fovDetail:'FOV ②  |  중심: (138, 16)  |  Type: 1  |  커버: #1', highlight:1
+  },
+  {
+    fovs:FOVS.slice(0,3), covered:[0,1,2,3,4],
+    title:'STEP 3: FOV ③ 배치 — 좌상단 클러스터',
+    desc:'<p>이제 <strong>type=0 (Normal)</strong> 부품을 배치합니다. Normal 부품은 여러 개를 하나의 FOV에 그룹화할 수 있습니다.</p><p>좌측 3개 부품 <strong>(#2, #3, #4)</strong>의 바운딩 박스 중심 <strong>(30, 40)</strong>에 FOV를 배치하여 모두 커버합니다.</p><p>부품 #4는 Side 부품(side=1)이므로 <strong>Side 카메라 FOV(25×25)</strong> 내에 포함되어야 합니다. FOV 중심 기준 반크기 영역(fov/2)으로 검증합니다.</p>',
+    tip:'<strong>Side 부품</strong>은 FOV 중심 기준 <strong>fov_x/2 × fov_y/2</strong> 영역 내에 있어야 합니다. 정규 FOV(50×50)의 절반 = 25×25!',
+    fovDetail:'FOV ③  |  중심: (30, 40)  |  Type: 0  |  커버: #2, #3, #4 (Side: #4)', highlight:2
+  },
+  {
+    fovs:FOVS.slice(0,4), covered:[0,1,2,3,4,5,6,7],
+    title:'STEP 4: FOV ④ 배치 — 중앙 클러스터',
+    desc:'<p>중앙 3개 부품 <strong>(#5, #6, #7)</strong>을 하나의 FOV로 그룹화합니다.</p><p>부품 #7은 Side 부품(side=1)이므로 <strong>Side FOV(25×25)</strong> 내에 포함되어야 합니다. FOV 중심(74, 55) 기준 Side 영역은 (61.5, 42.5)~(86.5, 67.5)이며, #7이 포함됩니다.</p><p>이 FOV에는 side_capture_time(0.25s)이 촬영 시간에 추가됩니다.</p>',
+    tip:'<strong>같은 step 레벨</strong>(step=0)의 부품만 함께 그룹화할 수 있습니다. 다른 step 값을 섞으면 Cover FAIL!',
+    fovDetail:'FOV ④  |  중심: (74, 55)  |  Type: 0  |  커버: #5, #6, #7 (Side: #7)', highlight:3
+  },
+  {
+    fovs:FOVS.slice(0,5), covered:[0,1,2,3,4,5,6,7,8,9],
+    title:'STEP 5: FOV ⑤ 배치 — 단차 영역 (step=1)',
+    desc:'<p>마지막으로 <strong>단차 영역(step=1)</strong>의 2개 부품(#8, #9)을 커버합니다.</p><p>단차 영역 부품은 step=0 부품과 <strong>분리</strong>하여 배치해야 합니다.</p><p style="font-size:1rem;font-weight:700;color:var(--green);margin-top:12px">&#x2705; 모든 부품이 커버되었습니다!</p><p>검사 순서: ①(type=2) → ②(type=1) → ③④⑤(type=0) — type 내림차순 규칙도 충족합니다.</p>',
+    tip:'<strong>5개 FOV</strong>로 10개 부품을 모두 커버! Cover: PASS, Order: PASS',
+    fovDetail:'FOV ⑤  |  중심: (126, 93)  |  Type: 0  |  커버: #8, #9', highlight:4
+  }
+];
+
+function setStepKR(idx){
+  var step=STEPS_KR[idx];
+  var section=document.querySelector('.lang-ko');
+  section.querySelectorAll('.step-btn').forEach(function(btn,i){
+    btn.classList.remove('active','done');
+    if(i===idx) btn.classList.add('active');
+    else if(i<idx) btn.classList.add('done');
+  });
+  document.getElementById('ko-pcb-stepper').innerHTML = buildSvg({
+    fovs:step.fovs, covered:new Set(step.covered), highlight:step.highlight, prefix:'ko-'
+  });
+  document.getElementById('ko-step-title').textContent = step.title;
+  document.getElementById('ko-step-desc').innerHTML = step.desc;
+  document.getElementById('ko-step-tip').innerHTML = '<span class="ci">&#x1F4A1;</span><span>'+step.tip+'</span>';
+  var fd = document.getElementById('ko-step-fov-detail');
+  if(step.fovDetail){ fd.textContent=step.fovDetail; fd.style.display='block'; }
+  else fd.style.display='none';
+  document.getElementById('ko-kpi-covered').textContent = step.covered.length;
+  document.getElementById('ko-kpi-uncovered').textContent = 10-step.covered.length;
+  document.getElementById('ko-kpi-fovs').textContent = step.fovs.length;
+}
+
+/* ========== PIPELINE CHART ========== */
+function buildPipeline(lang){
+  var isKR = (lang==='ko');
+  var w=680, h=160, lw=90, bh=22, rh=36;
+  var colors = ['#FE9234','#E26768','#2B9F2A'];
+  var labels = isKR ? ['Core 2+ (검사)','Core 1 (복원)','Core 0 (촬영)'] : ['Core 2+ (Inspect)','Core 1 (Recon)','Core 0 (Capture)'];
+  var fl = ['①','②','③','④','⑤'];
+  var nf = 5;
+  var capW=36, mvW=16, recW=36, insW=42;
+  var stagger=38;
+  var markerId = isKR ? 'ko-ta' : 'ta';
+
+  var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">';
+  svg += '<defs><marker id="'+markerId+'" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#999"/></marker></defs>';
+
+  // time axis
+  svg += '<line x1="'+lw+'" y1="'+(h-8)+'" x2="'+(w-10)+'" y2="'+(h-8)+'" stroke="#999" stroke-width="1" marker-end="url(#'+markerId+')"/>';
+  svg += '<text x="'+(w-10)+'" y="'+(h)+'" text-anchor="end" font-size="9" fill="#999">'+(isKR?'시간 (t)':'Time (t)')+'</text>';
+
+  for(var row=0;row<3;row++){
+    var y = 8 + row*rh;
+    svg += '<text x="'+(lw-6)+'" y="'+(y+bh/2+4)+'" text-anchor="end" font-size="9" fill="#666" font-weight="600">'+labels[row]+'</text>';
+
+    for(var fi=0;fi<nf;fi++){
+      // Row 2 = Core 0 (Capture): capture + move
+      // Row 1 = Core 1 (Recon): recon, staggered
+      // Row 0 = Core 2+ (Inspect): inspect, staggered more
+      var actualRow = 2 - row; // 0=Capture, 1=Recon, 2=Inspect
+      var x, bw;
+      if(actualRow===0){
+        // Core 0: capture bars + move gaps
+        x = lw + fi*(capW+mvW);
+        bw = capW;
+        svg += '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" fill="'+colors[row]+'" rx="3" opacity="0.85"/>';
+        svg += '<text x="'+(x+bw/2)+'" y="'+(y+bh/2+3.5)+'" text-anchor="middle" font-size="7" fill="#fff" font-weight="700">'+fl[fi]+'</text>';
+        // move bar after each FOV (except last)
+        if(fi<nf-1){
+          var mx = x+capW;
+          svg += '<rect x="'+mx+'" y="'+y+'" width="'+mvW+'" height="'+bh+'" fill="#1773B2" rx="2" opacity="0.7"/>';
+          svg += '<text x="'+(mx+mvW/2)+'" y="'+(y+bh/2+3)+'" text-anchor="middle" font-size="6" fill="#fff" font-weight="600">'+(isKR?'이동':'Move')+'</text>';
+        }
+      } else if(actualRow===1){
+        // Core 1: recon, staggered by 1 slot
+        x = lw + stagger + fi*(capW+mvW);
+        bw = recW;
+        svg += '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" fill="'+colors[row]+'" rx="3" opacity="0.85"/>';
+        svg += '<text x="'+(x+bw/2)+'" y="'+(y+bh/2+3.5)+'" text-anchor="middle" font-size="7" fill="#fff" font-weight="700">'+fl[fi]+'</text>';
+      } else {
+        // Core 2+: inspect, staggered by 2 slots
+        x = lw + stagger*2 + fi*(capW+mvW);
+        bw = insW;
+        svg += '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" fill="'+colors[row]+'" rx="3" opacity="0.85"/>';
+        svg += '<text x="'+(x+bw/2)+'" y="'+(y+bh/2+3.5)+'" text-anchor="middle" font-size="7" fill="#fff" font-weight="700">'+fl[fi]+'</text>';
+      }
+    }
+  }
+
+  // pipeline arrows (capture → recon → inspect)
+  for(var fi=0;fi<nf;fi++){
+    var cx0 = lw + fi*(capW+mvW) + capW/2;
+    var y_cam = 8 + 2*rh;
+    var cx1 = lw + stagger + fi*(capW+mvW) + recW/2;
+    var y_rec = 8 + 1*rh;
+    var cx2 = lw + stagger*2 + fi*(capW+mvW) + insW/2;
+    var y_ins = 8 + 0*rh;
+    svg += '<line x1="'+cx0+'" y1="'+y_cam+'" x2="'+cx1+'" y2="'+(y_rec+bh)+'" stroke="#bbb" stroke-width="1" stroke-dasharray="3,2"/>';
+    svg += '<line x1="'+cx1+'" y1="'+y_rec+'" x2="'+cx2+'" y2="'+(y_ins+bh)+'" stroke="#bbb" stroke-width="1" stroke-dasharray="3,2"/>';
+  }
+
+  // legend
+  svg += '<rect x="'+lw+'" y="'+(h-26)+'" width="12" height="10" fill="#1773B2" rx="2" opacity="0.7"/>';
+  svg += '<text x="'+(lw+16)+'" y="'+(h-18)+'" font-size="8" fill="#666">'+(isKR?'= FOV 간 이동 시간':'= Movement time between FOVs')+'</text>';
+
+  svg += '</svg>';
+  return svg;
+}
+
+/* ========== TAB SWITCHING ========== */
+function showTab(evt, tabId){
+  var group = evt.currentTarget.closest('.tab-group');
+  group.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+  group.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});
+  evt.currentTarget.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+/* ========== INIT ========== */
+document.addEventListener('DOMContentLoaded', function(){
+  // EN Section 1: Overview
+  document.getElementById('pcb-overview').innerHTML = buildSvg({fovs:[], covered:new Set()});
+  // EN Section 2: Step 0
+  setStep(0);
+  // EN Section 3: Correct vs Error
+  document.getElementById('pcb-correct').innerHTML = buildSvg({
+    fovs:FOVS, covered:new Set([0,1,2,3,4,5,6,7,8,9])
+  });
+  document.getElementById('pcb-error').innerHTML = buildSvg({
+    fovs:ERR_FOVS, covered:new Set([0,1,2,3,4,5,6,8,9]), errors:new Set([7])
+  });
+  // EN Section 4: Pipeline
+  document.getElementById('pipeline-chart').innerHTML = buildPipeline();
+
+  // KR Section 1: Overview
+  document.getElementById('ko-pcb-overview').innerHTML = buildSvg({fovs:[], covered:new Set(), prefix:'ko-'});
+  // KR Section 2: Step 0
+  setStepKR(0);
+  // KR Section 3: Correct vs Error
+  document.getElementById('ko-pcb-correct').innerHTML = buildSvg({
+    fovs:FOVS, covered:new Set([0,1,2,3,4,5,6,7,8,9]), prefix:'ko-'
+  });
+  document.getElementById('ko-pcb-error').innerHTML = buildSvg({
+    fovs:ERR_FOVS, covered:new Set([0,1,2,3,4,5,6,8,9]), errors:new Set([7]), prefix:'ko-'
+  });
+  // KR Section 4: Pipeline
+  document.getElementById('ko-pipeline-chart').innerHTML = buildPipeline('ko');
+
+  // Mobile touch support
+  document.querySelectorAll('.tab-btn, .step-btn').forEach(function(btn){
+    btn.addEventListener('touchend',function(e){e.preventDefault();btn.click();});
+  });
+});
+</script>
+</body>
+</html>

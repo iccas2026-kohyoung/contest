@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AOI Inspection Time Optimization — Practical Guide (Quick Start & Scoring)</title>
+<style>
+
+:root {
+  --primary:#1a73e8; --primary-light:#e8f0fe;
+  --accent:#e67e00; --accent-light:#fff3e0;
+  --green:#0d904f; --green-light:#e6f4ea;
+  --red:#d93025; --red-light:#fce8e6;
+  --purple:#7b1fa2; --purple-light:#f3e5f5;
+  --bg:#f8f9fa; --card:#ffffff; --text:#202124; --text2:#5f6368;
+  --border:#dadce0;
+  --shadow:0 1px 3px rgba(0,0,0,0.12),0 1px 2px rgba(0,0,0,0.08);
+  --shadow-hover:0 4px 12px rgba(0,0,0,0.15);
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+.hero{background:#fff;color:var(--text);padding:0;text-align:left;position:relative;overflow:hidden;min-height:180px;display:flex;align-items:center}
+.hero-bg{position:absolute;top:0;left:0;height:100%;z-index:0;padding:20px}
+.hero-bg img{height:100%;width:auto}
+.hero-content{position:relative;z-index:1;width:100%;padding:36px 0 28px}
+.hero .logo-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;justify-content:flex-end;padding-right:40px}
+.hero .logo-row img{height:32px}
+.hero h1{font-size:2rem;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;text-align:center}
+.hero .subtitle{font-size:1.05rem;color:var(--text2);text-align:center}
+.hero .badge-row{display:none}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.section{padding:48px 0}
+.section-title{font-size:1.6rem;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.section-title .num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-size:.95rem;font-weight:800;color:#fff;flex-shrink:0}
+.section-desc{color:var(--text2);margin-bottom:28px;font-size:.95rem}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;margin-bottom:20px;border:1px solid var(--border);transition:box-shadow .2s,transform .2s}
+.card:hover{box-shadow:var(--shadow-hover);transform:translateY(-1px)}
+.card h3{font-size:1.1rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .icon{font-size:1.3rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}[style*="grid-template-columns"]{grid-template-columns:1fr!important}}
+.flow{display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;margin:24px 0}
+.flow-step{background:var(--primary-light);border:2px solid var(--primary);border-radius:10px;padding:14px 20px;text-align:center;min-width:140px}
+.flow-step .step-num{font-size:.75rem;color:var(--primary);font-weight:700;margin-bottom:2px}
+.flow-step .step-label{font-size:.9rem;font-weight:700;color:var(--text)}
+.flow-step .step-desc{font-size:.78rem;color:var(--text2);margin-top:4px}
+.flow-arrow{font-size:1.5rem;color:var(--primary);padding:0 6px;flex-shrink:0}
+.flow-step.new-c{background:var(--green-light);border-color:var(--green)}
+.flow-step.new-c .step-num{color:var(--green)}
+.ct-table{width:100%;border-collapse:separate;border-spacing:0;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin:20px 0}
+.ct-table th{background:var(--primary);color:#fff;padding:14px 16px;text-align:left;font-size:.85rem;font-weight:700}
+.ct-table td{padding:14px 16px;border-bottom:1px solid var(--border);font-size:.88rem;vertical-align:top}
+.ct-table tr:last-child td{border-bottom:none}
+.ct-table tr:nth-child(even) td{background:#f8f9fa}
+.ct-table .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:700;margin-right:4px}
+.tag-new{background:var(--green-light);color:var(--green)}
+.tag-existing{background:var(--primary-light);color:var(--primary)}
+.row-new td{background:var(--green-light)!important}
+.formula-box{background:linear-gradient(135deg,#fafafa,#f0f4ff);border:1px solid #c8d6e5;border-left:4px solid var(--primary);border-radius:8px;padding:20px 24px;margin:16px 0;font-family:'Consolas','Fira Code',monospace;font-size:.9rem;line-height:2}
+.formula-box .label{font-weight:700;color:var(--primary)}
+.callout{border-radius:10px;padding:16px 20px;margin:16px 0;font-size:.9rem;display:flex;gap:12px;align-items:flex-start}
+.callout .ci{font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.callout-info{background:var(--primary-light);border:1px solid #b3d4fc}
+.callout-warn{background:var(--accent-light);border:1px solid #ffd699}
+.callout-new{background:var(--green-light);border:1px solid #a8dab5}
+.callout-danger{background:var(--red-light);border:1px solid #f5c6cb}
+.tab-group{margin:20px 0}
+.tab-bar{display:flex;gap:4px;border-bottom:2px solid var(--border);flex-wrap:wrap}
+.tab-btn{padding:12px 20px;font-size:.88rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;-webkit-tap-highlight-color:rgba(26,115,232,0.15);touch-action:manipulation;min-height:44px}
+.tab-btn:hover{color:var(--text);background:#f1f3f4}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-panel{display:none;padding:20px 0}
+.tab-panel.active{display:block}
+.gantt-legend{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}
+.gantt-legend-item{display:flex;align-items:center;gap:6px;font-size:.82rem}
+.gantt-legend-item .swatch{width:16px;height:12px;border-radius:2px}
+.kpi-row{display:flex;gap:16px;flex-wrap:wrap;margin:20px 0}
+.kpi{flex:1;min-width:180px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;text-align:center;border:1px solid var(--border)}
+.kpi .kpi-value{font-size:2rem;font-weight:800}
+.kpi .kpi-label{font-size:.82rem;color:var(--text2);margin-top:4px}
+.h-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700}
+.h-badge.h0{background:#e3f2fd;color:#1565c0}
+.h-badge.h1{background:#fff3e0;color:#e65100}
+svg text{font-family:inherit}
+.footer{background:#263238;color:rgba(255,255,255,.7);padding:24px 0;text-align:center;font-size:.82rem}
+.example-box{background:#f0f4f8;border:1px solid #d0d7de;border-radius:8px;padding:16px;margin:12px 0;font-size:.86rem}
+.example-box .ex-title{font-weight:700;color:var(--primary);margin-bottom:8px;font-size:.82rem}
+.code-block{background:#1e1e1e;color:#d4d4d4;padding:14px;border-radius:8px;font-family:'Fira Code',monospace;font-size:.8rem;line-height:1.7;overflow-x:auto;margin:12px 0;white-space:pre-wrap}
+
+/* Language toggle */
+.lang-toggle{position:fixed;top:12px;right:16px;z-index:9999;display:flex;gap:0;border-radius:6px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:sans-serif}
+.lang-toggle button{border:none;padding:7px 16px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s}
+.lang-toggle button.active{background:#1a73e8;color:#fff}
+.lang-toggle button:not(.active){background:#fff;color:#555}
+.lang-toggle button:not(.active):hover{background:#f0f0f0}
+.lang-ko{display:none}
+
+</style>
+</head>
+<body>
+
+<div class="lang-toggle" id="langToggle">
+  <button onclick="setLang('en')" class="active" id="btn-en">EN</button>
+  <button onclick="setLang('ko')" id="btn-ko">KR</button>
+</div>
+<script>
+function setLang(lang){
+  document.querySelector('.lang-en').style.display=lang==='en'?'block':'none';
+  document.querySelector('.lang-ko').style.display=lang==='ko'?'block':'none';
+  document.getElementById('btn-en').className=lang==='en'?'active':'';
+  document.getElementById('btn-ko').className=lang==='ko'?'active':'';
+  try{localStorage.setItem('ipo-lang',lang)}catch(e){}
+}
+document.addEventListener('DOMContentLoaded',function(){try{var saved=localStorage.getItem('ipo-lang');if(saved==='ko')setLang('ko')}catch(e){}})
+</script>
+
+
+<div class="lang-en">
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"><img src="ky_logo.png" alt="Koh Young Technology"></div>
+  <div class="hero-content">
+    <div class="container">
+      <h1>AOI Inspection Time Optimization &mdash; Practical Guide</h1>
+      <div class="subtitle">4th Koh Young AI Contest &mdash; ICCAS 2026</div>
+    </div>
+  </div>
+</div>
+
+
+<div style="background:#fff;border-bottom:2px solid #e0e0e0;padding:8px 0;text-align:center;font-size:.85rem;position:sticky;top:0;z-index:999">
+  <div class="container" style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">
+    <a href="ICCAS_2026_CONTEST_RULES.html" class="nav-link" data-doc="Rules" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Rules ★</a>
+    <a href="ICCAS_2026_CONTEST_DATA_DESCRIPTION.html" class="nav-link" data-doc="Data Description" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Data Description</a>
+    <a href="ICCAS_2026_CONTEST_GUIDE.html" class="nav-link" data-doc="Guide" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#fff;background:#1a73e8;transition:all .2s">Guide</a>
+    <a href="ICCAS_2026_CONTEST_TUTORIAL.html" class="nav-link" data-doc="Tutorial" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Tutorial</a>
+    <a href="https://github.com/iccas2026-kohyoung/contest" class="nav-link" target="_blank" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">GitHub ↗</a>
+  </div>
+</div>
+
+<div style="background:#e8f0fe;border:1px solid #c2d7f2;border-radius:8px;padding:10px 16px;margin:12px auto;max-width:920px;font-size:.85rem;text-align:center">
+  &#x1F4D8; This is a supplementary document. For official contest rules, see <a href="ICCAS_2026_CONTEST_RULES.html" style="color:#1a73e8;font-weight:700">Contest Rules ★</a>
+</div>
+
+<!-- 0. Quick Start -->
+<div class="section" style="background:#fff" id="s0">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--green)">&#x26A1;</span> Quick Start &mdash; Get Started in 5 Minutes</div>
+    <div class="section-desc">It may look complicated, but what you actually need to do is simple. <strong>Write your code in the <code>solver/</code> folder</strong>.</div>
+
+    <!-- Step 1: Installation -->
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3><span class="icon">&#x2460;</span> Environment Setup (1 min)</h3>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># Install required packages</span>
+pip install -r requirements.txt</div>
+    </div>
+
+    <!-- Step 2: Data Generation -->
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3><span class="icon">&#x2461;</span> Generate Data &amp; Run Baseline (2 min)</h3>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># Generate simulation data (8 scenarios x 12 = 96 datasets)</span>
+python 1_generate_data.py
+
+<span style="color:#6A9955"># Run baseline solver on all data -> check CT</span>
+python 2_run.py --solver greedy</div>
+      <div style="margin-top:12px;font-size:.88rem;padding:12px;background:#f8f9fa;border-radius:6px;font-family:monospace;line-height:1.8">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PCB |&nbsp; FOVs |&nbsp; Cover |&nbsp; Order |&nbsp;&nbsp; CT (s)<br>
+        --------------------------------------------------<br>
+        &nbsp;&nbsp;PCB0000 |&nbsp;&nbsp;&nbsp; 42 |&nbsp;&nbsp; True |&nbsp;&nbsp; True |&nbsp;&nbsp; 28.53<br>
+        &nbsp;&nbsp;PCB0001 |&nbsp;&nbsp;&nbsp; 38 |&nbsp;&nbsp; True |&nbsp;&nbsp; True |&nbsp;&nbsp; 25.17<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ... |&nbsp;&nbsp; ... |&nbsp;&nbsp;&nbsp; ... |&nbsp;&nbsp;&nbsp; ... |&nbsp;&nbsp;&nbsp;&nbsp; ...
+      </div>
+    </div>
+
+    <!-- Step 3: solver modification -->
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x2462;</span> Write Your Own Code in solver/ (This Is the Core of the Contest!)</h3>
+      <p style="font-size:.9rem;margin-bottom:12px">Create files freely inside the <code>solver/</code> folder. Just export a <code>solve</code> function from <code>solver/__init__.py</code>.</p>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># solver/__init__.py</span>
+<span style="color:#569cd6">from</span> .my_solver <span style="color:#569cd6">import</span> solve
+
+<span style="color:#6A9955"># solver/my_solver.py (filename is up to you)</span>
+<span style="color:#569cd6">def</span> <span style="color:#dcdcaa">solve</span>(data_folder: <span style="color:#4ec9b0">str</span>) -> <span style="color:#4ec9b0">int</span>:
+    <span style="color:#6A9955"># 1. Read input_component.csv, input_size.csv, input_parameter.csv</span>
+    <span style="color:#6A9955"># 2. Determine FOV placement (position, count)</span>
+    <span style="color:#6A9955"># 3. Assign components to FOVs</span>
+    <span style="color:#6A9955"># 4. Determine inspection order (Fiducial -> Barcode -> Normal)</span>
+    <span style="color:#6A9955"># 5. Save output_fov.csv</span>
+    <span style="color:#6A9955"># 6. return FOV count</span></div>
+      <div class="callout callout-info" style="margin-top:12px">
+        <span class="ci">&#x1F4A1;</span>
+        <span><strong>Start simple:</strong> Assigning one FOV per component is a valid result. From there, merge FOVs and improve the ordering.</span>
+      </div>
+
+      <!-- Before / After FOV Optimization -->
+      <div style="margin-top:20px">
+        <h4 style="margin:0 0 12px 0;color:var(--primary);font-size:.95rem">&#x1F4CA; FOV Placement Optimization &mdash; Before vs After</h4>
+        <p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">FOV size is determined by the camera field of view &mdash; <strong>all FOVs are the same size</strong>. The key is deciding <strong>where and how many</strong> same-sized FOVs to place.</p>
+        <div class="grid-2" style="gap:16px">
+          <!-- Before -->
+          <div style="border:2px solid #bbb;border-radius:10px;overflow:hidden">
+            <div style="font-size:.8rem;font-weight:700;text-align:center;padding:6px 0;background:#f5f5f5;color:#666">Before &mdash; Inefficient placement (9 FOVs)</div>
+            <svg viewBox="0 0 300 210" style="width:100%;display:block;background:#fff">
+              <rect x="10" y="10" width="280" height="185" fill="#fafafa" stroke="#999" stroke-width="0.5"/>
+              <rect x="28" y="28" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="48" y="24" width="8" height="5" fill="#666" rx="0.5"/>
+              <rect x="38" y="40" width="11" height="6" fill="#666" rx="0.5"/>
+              <rect x="185" y="26" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="205" y="30" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="195" y="42" width="11" height="6" fill="#666" rx="0.5"/>
+              <rect x="30" y="110" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="50" y="106" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="40" y="120" width="11" height="6" fill="#666" rx="0.5"/>
+              <rect x="188" y="108" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="208" y="112" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="198" y="122" width="11" height="6" fill="#666" rx="0.5"/>
+              <rect x="18" y="18" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="38" y="15" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="28" y="30" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="175" y="18" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="185" y="22" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="20" y="98" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="32" y="96" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="178" y="100" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="190" y="104" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <!-- Center dots for each FOV -->
+              <circle cx="48" cy="40.5" r="1.5" fill="#d63031"/>
+              <circle cx="68" cy="37.5" r="1.5" fill="#d63031"/>
+              <circle cx="58" cy="52.5" r="1.5" fill="#d63031"/>
+              <circle cx="205" cy="40.5" r="1.5" fill="#d63031"/>
+              <circle cx="215" cy="44.5" r="1.5" fill="#d63031"/>
+              <circle cx="50" cy="120.5" r="1.5" fill="#d63031"/>
+              <circle cx="62" cy="118.5" r="1.5" fill="#d63031"/>
+              <circle cx="208" cy="122.5" r="1.5" fill="#d63031"/>
+              <circle cx="220" cy="126.5" r="1.5" fill="#d63031"/>
+              <!-- Trajectory through FOV centers -->
+              <polyline points="48,40.5 68,37.5 58,52.5 205,40.5 215,44.5 50,120.5 62,118.5 208,122.5 220,126.5" fill="none" stroke="rgba(214,48,49,0.45)" stroke-width="0.8"/>
+              <circle cx="48" cy="40.5" r="2.5" fill="#d63031"/>
+              <text x="150" y="202" font-size="8" fill="#d63031" font-weight="700" text-anchor="middle">9 FOVs &mdash; mostly overlapping, long travel</text>
+            </svg>
+          </div>
+          <!-- After -->
+          <div style="border:2px solid #0d904f;border-radius:10px;overflow:hidden">
+            <div style="font-size:.8rem;font-weight:700;text-align:center;padding:6px 0;background:#e6f4ea;color:#0d904f">After &mdash; Optimal placement (4 FOVs)</div>
+            <svg viewBox="0 0 300 210" style="width:100%;display:block;background:#fff">
+              <rect x="10" y="10" width="280" height="185" fill="#fafafa" stroke="#999" stroke-width="0.5"/>
+              <rect x="28" y="28" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="48" y="24" width="8" height="5" fill="#666" rx="0.5"/>
+              <rect x="38" y="40" width="11" height="6" fill="#666" rx="0.5"/>
+              <rect x="185" y="26" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="205" y="30" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="195" y="42" width="11" height="6" fill="#666" rx="0.5"/>
+              <rect x="30" y="110" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="50" y="106" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="40" y="120" width="11" height="6" fill="#666" rx="0.5"/>
+              <rect x="188" y="108" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="208" y="112" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="198" y="122" width="11" height="6" fill="#666" rx="0.5"/>
+              <rect x="18" y="16" width="60" height="45" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1"/>
+              <text x="48" y="54" font-size="8" fill="rgba(13,144,79,0.4)" text-anchor="middle" font-weight="600">0</text>
+              <rect x="175" y="16" width="60" height="45" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1"/>
+              <text x="205" y="54" font-size="8" fill="rgba(13,144,79,0.4)" text-anchor="middle" font-weight="600">1</text>
+              <rect x="20" y="96" width="60" height="45" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1"/>
+              <text x="50" y="134" font-size="8" fill="rgba(13,144,79,0.4)" text-anchor="middle" font-weight="600">2</text>
+              <rect x="178" y="96" width="60" height="45" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1"/>
+              <text x="208" y="134" font-size="8" fill="rgba(13,144,79,0.4)" text-anchor="middle" font-weight="600">3</text>
+              <polyline points="48,38 205,38 208,118 50,118" fill="none" stroke="rgba(13,144,79,0.5)" stroke-width="1.2"/>
+              <circle cx="48" cy="38" r="2.5" fill="#0d904f"/>
+              <circle cx="205" cy="38" r="1.5" fill="rgba(13,144,79,0.6)"/>
+              <circle cx="208" cy="118" r="1.5" fill="rgba(13,144,79,0.6)"/>
+              <circle cx="50" cy="118" r="1.5" fill="rgba(13,144,79,0.6)"/>
+              <text x="150" y="202" font-size="8" fill="#0d904f" font-weight="700" text-anchor="middle">4 FOVs &mdash; no overlap, short travel</text>
+            </svg>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding:10px 14px;background:#e8f5e9;border-radius:8px;font-size:.82rem;text-align:center">
+          <strong>Key:</strong> FOV size is fixed &mdash; optimize <strong>placement to cover all components with fewer FOVs</strong> and <strong>minimize travel distance</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Verification -->
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <h3><span class="icon">&#x2463;</span> Verify Results (1 min)</h3>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># Run my solver -> constraint verification + automatic CT calculation</span>
+python 2_run.py --solver greedy
+
+<span style="color:#6A9955"># Scoring only (evaluate existing output without running solver)</span>
+python 2_run.py --solver greedy --eval
+
+<span style="color:#6A9955"># View result interactively in browser</span>
+python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open</div>
+      <div class="grid-2" style="margin-top:12px">
+        <div class="callout callout-info" style="margin:0">
+          <span class="ci">&#x2705;</span>
+          <span><strong>Cover = True:</strong> All components are included in FOVs</span>
+        </div>
+        <div class="callout callout-info" style="margin:0">
+          <span class="ci">&#x2705;</span>
+          <span><strong>Order = True:</strong> Inspection order constraints satisfied</span>
+        </div>
+      </div>
+      <div class="callout callout-warn" style="margin-top:12px">
+        <span class="ci">&#x26A0;</span>
+        <span>If Cover or Order is <strong>False</strong>, a constraint is violated &rarr; <strong>penalty_solver</strong> is automatically applied. <code>checker.py</code> will log which constraints were violated.</span>
+      </div>
+
+      <!-- Penalty Solver Detail -->
+      <div style="margin-top:20px;padding:20px;background:linear-gradient(135deg,#fce8e6,#fff5f5);border:2px solid #ef9a9a;border-radius:12px">
+        <h4 style="margin:0 0 14px 0;color:var(--red);font-size:1rem">&#x26A0; Penalty Solver &mdash; Automatically Applied on Constraint Violation</h4>
+        <p style="font-size:.88rem;margin-bottom:14px">
+          If a constraint (<code>cover_all_components</code> or <code>fov_inspection_order</code>) is violated, the Checker automatically runs the <strong>penalty_solver</strong>.
+          Your existing valid FOVs are <strong>kept intact</strong>, and <strong>additional FOVs are placed</strong> only for the uncovered (violating) components to recalculate CT.
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div style="background:#fff;padding:14px;border-radius:8px;border-left:3px solid var(--red)">
+            <div style="font-weight:700;color:var(--red);margin-bottom:6px;font-size:.88rem">1. Detect Uncovered Components</div>
+            <div style="font-size:.84rem;line-height:1.7">
+              Components not covered by the participant's <code>output_fov.csv</code>, or those violating inspection order, are identified.
+              Properly covered components and their FOVs are retained as-is.
+            </div>
+          </div>
+          <div style="background:#fff;padding:14px;border-radius:8px;border-left:3px solid var(--red)">
+            <div style="font-weight:700;color:var(--red);margin-bottom:6px;font-size:.88rem">2. Additional FOV Placement (Greedy)</div>
+            <div style="font-size:.84rem;line-height:1.7">
+              <strong>Additional FOVs are placed via greedy method</strong> for uncovered components.
+              These extra FOVs are appended to the existing path in nearest neighbor order.<br>
+              <code style="font-size:.78rem;background:#fce8e6;padding:2px 6px;border-radius:4px">Existing FOVs kept + extra FOVs for uncovered</code>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#fff;padding:14px;border-radius:8px;border:1px solid #ef9a9a">
+          <div style="font-weight:700;color:var(--red);margin-bottom:8px;font-size:.88rem">&#x26A0; Penalty Effect</div>
+          <div style="font-size:.84rem;line-height:1.7">
+            &bull; Your existing FOV placement is preserved, but <strong>additional FOVs increase total FOV count and travel distance</strong>.<br>
+            &bull; The greedy placement of extra FOVs is far from optimal, so CT will be <strong>higher</strong> than a well-tuned solver.<br>
+            &bull; Finding better FOV placements while satisfying all constraints is the core challenge of this contest.
+          </div>
+        </div>
+
+        <div class="callout callout-danger" style="margin-top:14px;margin-bottom:0">
+          <span class="ci">&#x1F525;</span>
+          <span><strong>Make sure to cover all components!</strong> When penalty_solver is applied, extra FOVs are inserted, increasing CT.
+          Always verify that <code>cover_all_components() = True</code> and <code>fov_inspection_order() = True</code>.</span>
+        </div>
+      </div>
+
+      <!-- Viewer Comparison: Normal vs Penalty -->
+      <div style="margin-top:20px">
+        <h4 style="margin:0 0 12px 0;color:var(--purple);font-size:.95rem">&#x1F50D; result.html Viewer &mdash; Normal vs Constraint Violation</h4>
+        <p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">After running <code>3_view.py --solver &lt;name&gt;</code>, a <code>result.html</code> file is generated in each <code>&lt;dataset&gt;/&lt;solver&gt;/</code> folder. Open it in a browser to interactively inspect the PCB layout and timing.</p>
+        <div class="grid-2" style="gap:16px">
+          <!-- Normal Case -->
+          <div style="border:2px solid #0d904f;border-radius:10px;overflow:hidden">
+            <div style="font-size:.8rem;font-weight:700;text-align:center;padding:6px 0;background:#e6f4ea;color:#0d904f">Normal (Cover=PASS, Order=PASS)</div>
+            <svg viewBox="0 0 400 220" style="width:100%;display:block;background:#fff">
+              <!-- Header bar -->
+              <rect x="0" y="0" width="400" height="28" fill="#f5f5f5"/>
+              <text x="8" y="18" font-size="10" font-weight="700" fill="#333">PCB Inspection Viewer</text>
+              <text x="160" y="18" font-size="8" fill="#666">FOVs: <tspan font-weight="700">6</tspan></text>
+              <text x="210" y="18" font-size="8" fill="#666">CT: <tspan font-weight="700">45.2s</tspan></text>
+              <!-- PASS badges -->
+              <rect x="262" y="7" width="52" height="15" rx="3" fill="#d4edda"/>
+              <text x="274" y="18" font-size="7.5" font-weight="600" fill="#155724">PASS</text>
+              <rect x="320" y="7" width="52" height="15" rx="3" fill="#d4edda"/>
+              <text x="332" y="18" font-size="7.5" font-weight="600" fill="#155724">PASS</text>
+              <text x="262" y="7" font-size="6" fill="#999" dy="-1">Cover</text>
+              <text x="320" y="7" font-size="6" fill="#999" dy="-1">Order</text>
+
+              <!-- PCB area -->
+              <rect x="8" y="32" width="230" height="180" fill="#fff" stroke="#999" stroke-width="0.5"/>
+              <!-- Normal FOVs (blue/gray) -->
+              <rect x="15" y="38" width="70" height="50" fill="rgba(0,153,25,0.15)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="50" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">0</text>
+              <rect x="90" y="38" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="125" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">1</text>
+              <rect x="165" y="38" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="200" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">2</text>
+              <rect x="15" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="50" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">3</text>
+              <rect x="90" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="125" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">4</text>
+              <rect x="165" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="200" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">5</text>
+              <!-- Components (gray dots) -->
+              <rect x="25" y="48" width="12" height="6" fill="#00a832" rx="1"/>
+              <rect x="42" y="52" width="8" height="5" fill="#666"/>
+              <rect x="55" y="45" width="10" height="7" fill="#666"/>
+              <rect x="100" y="50" width="9" height="5" fill="#666"/>
+              <rect x="115" y="42" width="11" height="6" fill="#666"/>
+              <rect x="140" y="55" width="8" height="4" fill="#666"/>
+              <rect x="175" y="48" width="10" height="5" fill="#666"/>
+              <rect x="195" y="55" width="12" height="6" fill="#666"/>
+              <rect x="25" y="105" width="9" height="5" fill="#666"/>
+              <rect x="42" y="110" width="11" height="6" fill="#666"/>
+              <rect x="100" y="108" width="8" height="5" fill="#666"/>
+              <rect x="120" y="115" width="10" height="4" fill="#666"/>
+              <rect x="175" y="102" width="12" height="7" fill="#666"/>
+              <rect x="195" y="112" width="9" height="5" fill="#666"/>
+              <!-- Trajectory -->
+              <polyline points="50,63 125,63 200,63 200,120 125,120 50,120" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
+              <circle cx="50" cy="63" r="3" fill="#d63031"/>
+              <circle cx="125" cy="63" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="200" cy="63" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="200" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="125" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="50" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+
+              <!-- Timing panel (right) -->
+              <rect x="245" y="32" width="150" height="180" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+              <!-- Legend -->
+              <rect x="252" y="36" width="8" height="8" fill="#1773B2"/><text x="263" y="43" font-size="6" fill="#444">Move</text>
+              <rect x="290" y="36" width="8" height="8" fill="#2B9F2A"/><text x="301" y="43" font-size="6" fill="#444">Capture</text>
+              <rect x="335" y="36" width="8" height="8" fill="#E26768"/><text x="346" y="43" font-size="6" fill="#444">Recon</text>
+              <!-- Gantt bars (normal) -->
+              <text x="250" y="60" font-size="6" fill="#999">C3</text>
+              <rect x="296" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <rect x="332" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <rect x="368" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <text x="250" y="78" font-size="6" fill="#999">C2</text>
+              <rect x="282" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="320" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="356" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <text x="250" y="96" font-size="6" fill="#999">C1</text>
+              <rect x="280" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="316" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="354" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <text x="250" y="114" font-size="6" fill="#999">C0</text>
+              <rect x="260" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="282" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="296" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="318" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="332" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="354" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="368" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <!-- CT label -->
+              <text x="325" y="200" font-size="8" fill="#666" text-anchor="middle">Timelog (45.2s)</text>
+            </svg>
+          </div>
+
+          <!-- Penalty Case -->
+          <div style="border:2px solid #d93025;border-radius:10px;overflow:hidden">
+            <div style="font-size:.8rem;font-weight:700;text-align:center;padding:6px 0;background:#fce8e6;color:#d93025">Constraint Violation (Cover=FAIL) &mdash; Missing Components + FOV Overflow</div>
+            <svg viewBox="0 0 400 220" style="width:100%;display:block;background:#fff">
+              <!-- Header bar -->
+              <rect x="0" y="0" width="400" height="28" fill="#f5f5f5"/>
+              <text x="8" y="18" font-size="10" font-weight="700" fill="#d63031">PCB Inspection Viewer</text>
+              <text x="160" y="18" font-size="8" fill="#666">FOVs: <tspan font-weight="700">5</tspan></text>
+              <text x="210" y="18" font-size="8" fill="#666">CT: <tspan font-weight="700">38.7s</tspan></text>
+              <!-- FAIL badge -->
+              <rect x="262" y="7" width="52" height="15" rx="3" fill="#f8d7da"/>
+              <text x="278" y="18" font-size="7.5" font-weight="600" fill="#721c24">FAIL</text>
+              <rect x="320" y="7" width="52" height="15" rx="3" fill="#d4edda"/>
+              <text x="332" y="18" font-size="7.5" font-weight="600" fill="#155724">PASS</text>
+              <text x="262" y="7" font-size="6" fill="#999" dy="-1">Cover</text>
+              <text x="320" y="7" font-size="6" fill="#999" dy="-1">Order</text>
+
+              <!-- PCB area -->
+              <rect x="8" y="32" width="230" height="180" fill="#fff" stroke="#999" stroke-width="0.5"/>
+              <!-- Normal FOVs -->
+              <rect x="15" y="38" width="70" height="50" fill="rgba(0,153,25,0.15)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="50" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">0</text>
+              <rect x="90" y="38" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="125" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">1</text>
+              <!-- ERROR FOV (red) -- component extends outside FOV boundary -->
+              <rect x="165" y="38" width="70" height="50" fill="rgba(205,99,71,0.2)" stroke="#cd4547" stroke-width="1.2"/>
+              <text x="200" y="66" font-size="8" fill="#cd4547" font-weight="700" text-anchor="middle">2</text>
+              <rect x="15" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="50" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">3</text>
+              <rect x="90" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="125" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">4</text>
+              <!-- Missing area -- components with no FOV -->
+
+              <!-- Normal components -->
+              <rect x="25" y="48" width="12" height="6" fill="#00a832" rx="1"/>
+              <rect x="42" y="52" width="8" height="5" fill="#666"/>
+              <rect x="55" y="45" width="10" height="7" fill="#666"/>
+              <rect x="100" y="50" width="9" height="5" fill="#666"/>
+              <rect x="115" y="42" width="11" height="6" fill="#666"/>
+              <rect x="140" y="55" width="8" height="4" fill="#666"/>
+              <!-- ERROR components (red) -- outside FOV -->
+              <rect x="225" y="45" width="14" height="8" fill="#d63031" rx="1"/>
+              <rect x="228" y="58" width="10" height="6" fill="#d63031" rx="1"/>
+              <!-- Missing components (red, in area with no FOV) -->
+              <rect x="175" y="160" width="11" height="6" fill="#d63031" rx="1"/>
+              <rect x="195" y="165" width="9" height="5" fill="#d63031" rx="1"/>
+              <rect x="210" y="155" width="13" height="7" fill="#d63031" rx="1"/>
+              <!-- Normal components (others) -->
+              <rect x="25" y="105" width="9" height="5" fill="#666"/>
+              <rect x="42" y="110" width="11" height="6" fill="#666"/>
+              <rect x="100" y="108" width="8" height="5" fill="#666"/>
+              <rect x="120" y="115" width="10" height="4" fill="#666"/>
+              <!-- Trajectory -->
+              <polyline points="50,63 125,63 200,63 200,120 125,120" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
+              <circle cx="50" cy="63" r="3" fill="#d63031"/>
+              <circle cx="125" cy="63" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="200" cy="63" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="200" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="125" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+
+              <!-- Error annotations -->
+              <line x1="232" y1="48" x2="232" y2="35" stroke="#d63031" stroke-width="0.8" stroke-dasharray="2,2"/>
+              <text x="230" y="33" font-size="6" fill="#d63031" font-weight="700">Outside FOV!</text>
+              <circle cx="190" cy="163" r="18" fill="none" stroke="#d63031" stroke-width="1" stroke-dasharray="3,2"/>
+              <text x="190" y="188" font-size="6" fill="#d63031" font-weight="700" text-anchor="middle">No FOV assigned</text>
+
+              <!-- Timing panel (right) -->
+              <rect x="245" y="32" width="150" height="180" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+              <!-- Legend -->
+              <rect x="252" y="36" width="8" height="8" fill="#1773B2"/><text x="263" y="43" font-size="6" fill="#444">Move</text>
+              <rect x="290" y="36" width="8" height="8" fill="#2B9F2A"/><text x="301" y="43" font-size="6" fill="#444">Capture</text>
+              <rect x="335" y="36" width="8" height="8" fill="#E26768"/><text x="346" y="43" font-size="6" fill="#444">Recon</text>
+              <!-- Gantt bars -->
+              <text x="250" y="60" font-size="6" fill="#999">C3</text>
+              <rect x="296" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <rect x="332" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <text x="250" y="78" font-size="6" fill="#999">C2</text>
+              <rect x="282" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="320" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <text x="250" y="96" font-size="6" fill="#999">C1</text>
+              <rect x="280" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="316" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <text x="250" y="114" font-size="6" fill="#999">C0</text>
+              <rect x="260" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="282" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="296" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="318" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="332" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <!-- CT label -->
+              <text x="325" y="200" font-size="8" fill="#666" text-anchor="middle">Timelog (38.7s)</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Output Examples -->
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="background:#e6f4ea;border-radius:8px;padding:12px 16px;border:1px solid #c8e6c9">
+            <div style="font-weight:700;color:#0d904f;font-size:.82rem;margin-bottom:6px">&#x2705; Normal Output (2_run.py --solver greedy)</div>
+            <div class="code-block" style="font-size:.78rem;padding:8px 12px;margin:0">
+       PCB | FOVs | Core | Cover | Order |   CT (s)
+----------------------------------------------------------
+    PCB_01 |     6 |    10 |   True |   True |    <span style="color:#1773B2">45.20</span>
+    PCB_02 |     8 |    12 |   True |   True |    <span style="color:#1773B2">52.80</span></div>
+          </div>
+          <div style="background:#fce8e6;border-radius:8px;padding:12px 16px;border:1px solid #f5c6cb">
+            <div style="font-weight:700;color:#d93025;font-size:.82rem;margin-bottom:6px">&#x274C; Constraint Violation &rarr; penalty_solver Auto-applied</div>
+            <div class="code-block" style="font-size:.78rem;padding:8px 12px;margin:0">
+       PCB | FOVs | Core | Cover | Order |   CT (s)
+----------------------------------------------------------
+    PCB_01 |     6 |    10 |   True |   True |    <span style="color:#1773B2">45.20</span>
+    PCB_02 |     5 |    12 |  <span style="color:#d93025">False</span> |   True |   <span style="color:#d93025">78.50*</span>
+----------------------------------------------------------
+       AVG |       |       |        |        |    61.85
+
+<span style="color:#d93025;font-weight:700">* = penalty_solver applied (1/2 datasets)</span></div>
+            <div style="margin-top:8px;font-size:.8rem;color:#666;line-height:1.6">
+              When <strong>Cover=False</strong> or <strong>Order=False</strong>, penalty_solver places additional FOVs for uncovered components.<br>
+              The <code style="color:#d93025">*</code> next to CT indicates penalty was applied. Check error.log for violation details.
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info" style="margin-top:14px">
+          <span class="ci">&#x1F4A1;</span>
+          <span><strong>Viewer tips:</strong> Run <code>python 3_view.py --solver greedy --open</code> to generate and open <code>result.html</code>. Click a FOV to highlight its components and timing. Drag to zoom in, double-click to reset zoom. Use Step filters (Step=0/Step=1) to view by height level.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overall Flow Summary -->
+    <div class="flow" style="margin:24px 0">
+      <div class="flow-step" style="background:#e6f4ea;border-color:var(--green)"><div class="step-num" style="color:var(--green)">STEP 1</div><div class="step-label">Generate Data</div><div class="step-desc">generator.py</div></div>
+      <div class="flow-arrow">&#x276F;</div>
+      <div class="flow-step" style="background:#fff3e0;border-color:var(--accent)"><div class="step-num" style="color:var(--accent)">STEP 2</div><div class="step-label">Write solver/</div><div class="step-desc">FOV placement + ordering</div></div>
+      <div class="flow-arrow">&#x276F;</div>
+      <div class="flow-step" style="background:#e8f0fe;border-color:var(--primary)"><div class="step-num" style="color:var(--primary)">STEP 3</div><div class="step-label">Verify &amp; Improve</div><div class="step-desc">checker.py &rarr; check CT</div></div>
+      <div class="flow-arrow">&#x276F;</div>
+      <div class="flow-step" style="background:#f3e5f5;border-color:var(--purple)"><div class="step-num" style="color:var(--purple)">STEP 4</div><div class="step-label">Submit</div><div class="step-desc">Submit solver/ folder</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 1.5. result.html Viewer Usage -->
+<div class="section" style="background:var(--bg)" id="s1-5">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--purple)">&#x1F50D;</span> result.html Viewer Usage</div>
+    <div class="section-desc">Run <code>3_view.py --solver &lt;name&gt;</code> to generate <code>result.html</code> in each <code>&lt;dataset&gt;/&lt;solver&gt;/</code> folder. Open it in any browser to access the interactive PCB inspection viewer.</div>
+
+    <!-- Overview -->
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <h3><span class="icon">&#x1F4BB;</span> Opening the Viewer</h3>
+      <p style="font-size:.9rem;margin-bottom:12px">After <code>2_run.py</code> has been run for a solver, use <code>3_view.py</code> to render result pages. Each solver's output is in its own subfolder (e.g., <code>simulation_data/S00_sparse_fast_001/greedy/result.html</code>).</p>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># Generate result.html for a specific solver</span>
+python 3_view.py --solver greedy
+
+<span style="color:#6A9955"># View a single dataset and open in browser</span>
+python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
+
+<span style="color:#6A9955"># e.g., simulation_data/S00_sparse_fast_001/greedy/result.html</span></div>
+    </div>
+
+    <!-- Viewer Layout -->
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3><span class="icon">&#x1F5FA;</span> Viewer Layout</h3>
+
+      <!-- Header Bar -->
+      <h4 style="color:var(--green);font-size:.95rem;margin-bottom:8px">Header Bar</h4>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <div style="padding:8px 14px;background:#f5f5f5;border-radius:8px;font-size:.86rem"><strong>FOVs:</strong> Total FOV count</div>
+        <div style="padding:8px 14px;background:#f5f5f5;border-radius:8px;font-size:.86rem"><strong>CT:</strong> Calculated Cycle Time (seconds)</div>
+        <div style="padding:8px 14px;border-radius:8px;font-size:.86rem;background:#d4edda;color:#155724"><strong>Cover: PASS</strong></div>
+        <div style="padding:8px 14px;border-radius:8px;font-size:.86rem;background:#d4edda;color:#155724"><strong>Order: PASS</strong></div>
+        <div style="padding:8px 14px;border-radius:8px;font-size:.86rem;background:#f8d7da;color:#721c24"><strong>Cover: FAIL</strong> &mdash; uncovered components exist</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.86rem;margin-bottom:20px">
+        <strong>Step Filters:</strong>
+        <span style="padding:4px 12px;background:#e67e00;color:#fff;border-radius:4px;font-size:.82rem;font-weight:600">All</span>
+        <span style="padding:4px 12px;background:#fff;border:1px solid #bbb;border-radius:4px;font-size:.82rem;font-weight:600">Step=0</span>
+        <span style="padding:4px 12px;background:#fff;border:1px solid #bbb;border-radius:4px;font-size:.82rem;font-weight:600">Step=1</span>
+        <span style="color:var(--text2)">&mdash; click to show only that step's FOVs/components; others are dimmed</span>
+      </div>
+
+      <!-- Viewer Illustration -->
+      <div style="border:2px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px">
+        <svg viewBox="0 0 720 300" style="width:100%;display:block;background:#fff">
+          <!-- ===== Header Bar ===== -->
+          <rect x="0" y="0" width="720" height="32" fill="#f5f5f5" stroke="#ddd" stroke-width="0.5"/>
+          <text x="14" y="21" font-size="12" font-weight="700" fill="#333">PCB Inspection Viewer</text>
+          <text x="200" y="21" font-size="10" fill="#666">FOVs: <tspan font-weight="700">42</tspan></text>
+          <text x="270" y="21" font-size="10" fill="#666">CT: <tspan font-weight="700">28.53s</tspan></text>
+          <rect x="350" y="8" width="62" height="18" rx="4" fill="#d4edda"/>
+          <text x="364" y="21" font-size="9" font-weight="600" fill="#155724">Cover: PASS</text>
+          <rect x="420" y="8" width="62" height="18" rx="4" fill="#d4edda"/>
+          <text x="434" y="21" font-size="9" font-weight="600" fill="#155724">Order: PASS</text>
+          <rect x="510" y="8" width="30" height="18" rx="4" fill="#e67e00"/>
+          <text x="518" y="21" font-size="8" font-weight="700" fill="#fff">All</text>
+          <rect x="546" y="8" width="42" height="18" rx="4" fill="#fff" stroke="#bbb" stroke-width="0.5"/>
+          <text x="552" y="21" font-size="8" font-weight="600" fill="#666">Step=0</text>
+          <rect x="594" y="8" width="42" height="18" rx="4" fill="#fff" stroke="#bbb" stroke-width="0.5"/>
+          <text x="600" y="21" font-size="8" font-weight="600" fill="#666">Step=1</text>
+
+          <!-- ===== Left: PCB Panel ===== -->
+          <rect x="8" y="40" width="400" height="252" fill="#fff" stroke="#ccc" stroke-width="0.5"/>
+          <text x="14" y="55" font-size="9" fill="#999" font-weight="600">PCB Layout</text>
+          <rect x="20" y="62" width="376" height="220" fill="#fafafa" stroke="#999" stroke-width="0.5"/>
+          <!-- Step=1 region -->
+          <rect x="200" y="170" width="180" height="100" fill="rgba(230,126,0,0.05)" stroke="#c8a040" stroke-width="1" stroke-dasharray="5,3" rx="2"/>
+          <text x="208" y="183" font-size="7" fill="#c8a040" font-weight="600">Step=1 region</text>
+          <!-- FOV 0: Fiducial -->
+          <rect x="28" y="70" width="72" height="52" fill="rgba(0,153,25,0.12)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="64" y="100" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">0</text>
+          <rect x="42" y="82" width="14" height="8" fill="#00a832" rx="1"/>
+          <rect x="60" y="86" width="10" height="6" fill="#666" rx="0.5"/>
+          <!-- FOV 1: Barcode (purple tint) -->
+          <rect x="108" y="70" width="72" height="52" fill="rgba(123,31,162,0.1)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="144" y="100" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">1</text>
+          <rect x="120" y="80" width="12" height="7" fill="#7b1fa2" rx="1"/>
+          <rect x="138" y="85" width="9" height="5" fill="#666" rx="0.5"/>
+          <rect x="152" y="78" width="11" height="6" fill="#666" rx="0.5"/>
+          <!-- FOV 2: Normal -->
+          <rect x="188" y="70" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="224" y="100" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">2</text>
+          <rect x="200" y="82" width="10" height="5" fill="#666" rx="0.5"/>
+          <rect x="215" y="78" width="12" height="7" fill="#666" rx="0.5"/>
+          <rect x="232" y="84" width="9" height="5" fill="#666" rx="0.5"/>
+          <rect x="246" y="80" width="8" height="6" fill="#666" rx="0.5"/>
+          <!-- FOV 3 -->
+          <rect x="268" y="70" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="304" y="100" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">3</text>
+          <rect x="280" y="80" width="11" height="6" fill="#666" rx="0.5"/>
+          <rect x="296" y="84" width="9" height="5" fill="#666" rx="0.5"/>
+          <rect x="312" y="78" width="13" height="7" fill="#666" rx="0.5"/>
+          <!-- FOV 4: Selected (orange) -->
+          <rect x="28" y="130" width="72" height="52" fill="rgba(255,180,0,0.2)" stroke="#e67e00" stroke-width="2"/>
+          <text x="64" y="160" font-size="9" fill="#e67e00" font-weight="700" text-anchor="middle">4</text>
+          <rect x="40" y="140" width="10" height="6" fill="#e67e00" rx="0.5"/>
+          <rect x="55" y="144" width="12" height="5" fill="#e67e00" rx="0.5"/>
+          <rect x="72" y="138" width="9" height="7" fill="#e67e00" rx="0.5"/>
+          <rect x="46" y="143" width="36" height="26" fill="rgba(40,80,220,0.06)" stroke="#2850dc" stroke-width="0.8" stroke-dasharray="3,2" rx="1"/>
+          <!-- FOV 5 -->
+          <rect x="108" y="130" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="144" y="160" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">5</text>
+          <rect x="118" y="140" width="11" height="6" fill="#666" rx="0.5"/>
+          <rect x="135" y="144" width="10" height="5" fill="#666" rx="0.5"/>
+          <rect x="150" y="138" width="12" height="7" fill="#666" rx="0.5"/>
+          <!-- FOV 6,7 (Step=1) -->
+          <rect x="210" y="190" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="246" y="220" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">6</text>
+          <rect x="222" y="200" width="10" height="5" fill="#666" rx="0.5"/>
+          <rect x="238" y="204" width="12" height="6" fill="#666" rx="0.5"/>
+          <rect x="256" y="198" width="9" height="5" fill="#666" rx="0.5"/>
+          <rect x="290" y="190" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="326" y="220" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">7</text>
+          <rect x="300" y="200" width="11" height="6" fill="#666" rx="0.5"/>
+          <rect x="318" y="204" width="10" height="5" fill="#666" rx="0.5"/>
+          <rect x="334" y="198" width="12" height="7" fill="#666" rx="0.5"/>
+          <!-- Trajectory -->
+          <polyline points="64,96 144,96 224,96 304,96 304,156 64,156 144,156 246,216 326,216" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+          <circle cx="64" cy="96" r="3.5" fill="#d63031"/>
+          <circle cx="144" cy="96" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="224" cy="96" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="304" cy="96" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="64" cy="156" r="2" fill="#e67e00"/>
+          <circle cx="144" cy="156" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="246" cy="216" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="326" cy="216" r="2" fill="rgba(0,0,0,0.4)"/>
+          <!-- Annotations -->
+          <line x1="84" y1="156" x2="98" y2="172" stroke="#2850dc" stroke-width="0.6"/>
+          <text x="100" y="177" font-size="7" fill="#2850dc" font-weight="600">Side FOV</text>
+          <line x1="64" y1="166" x2="64" y2="182" stroke="#e67e00" stroke-width="0.6"/>
+          <text x="40" y="190" font-size="7" fill="#e67e00" font-weight="600">Selected FOV</text>
+
+          <!-- ===== Right: Timing Panel (Gantt) ===== -->
+          <rect x="416" y="40" width="296" height="252" fill="#fff" stroke="#ccc" stroke-width="0.5"/>
+          <text x="422" y="52" font-size="8" fill="#999" font-weight="600">Timing (Gantt Chart)</text>
+          <rect x="534" y="44" width="8" height="7" fill="#1773B2" rx="1"/><text x="545" y="51" font-size="6" fill="#555">Move</text>
+          <rect x="574" y="44" width="8" height="7" fill="#2B9F2A" rx="1"/><text x="585" y="51" font-size="6" fill="#555">Capture</text>
+          <rect x="624" y="44" width="8" height="7" fill="#E26768" rx="1"/><text x="635" y="51" font-size="6" fill="#555">Recon</text>
+          <rect x="674" y="44" width="8" height="7" fill="#FE9234" rx="1"/><text x="685" y="51" font-size="6" fill="#555">Inspect</text>
+          <!-- Time axis -->
+          <line x1="470" y1="62" x2="470" y2="268" stroke="#eee" stroke-width="0.5"/>
+          <line x1="530" y1="62" x2="530" y2="268" stroke="#eee" stroke-width="0.5"/>
+          <line x1="590" y1="62" x2="590" y2="268" stroke="#eee" stroke-width="0.5"/>
+          <line x1="650" y1="62" x2="650" y2="268" stroke="#eee" stroke-width="0.5"/>
+          <text x="470" y="280" font-size="7" fill="#bbb" text-anchor="middle">5s</text>
+          <text x="530" y="280" font-size="7" fill="#bbb" text-anchor="middle">10s</text>
+          <text x="590" y="280" font-size="7" fill="#bbb" text-anchor="middle">15s</text>
+          <text x="650" y="280" font-size="7" fill="#bbb" text-anchor="middle">20s</text>
+          <!-- Core 4: Inspect (top row) -->
+          <text x="424" y="80" font-size="9" fill="#555" font-weight="600">Core 4</text>
+          <text x="424" y="90" font-size="7" fill="#999">Inspect</text>
+          <rect x="520" y="72" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="558" y="72" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="596" y="72" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="636" y="72" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <!-- Core 3: Inspect -->
+          <text x="424" y="120" font-size="9" fill="#555" font-weight="600">Core 3</text>
+          <text x="424" y="130" font-size="7" fill="#999">Inspect</text>
+          <rect x="502" y="112" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="540" y="112" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="576" y="112" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="616" y="112" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="660" y="112" width="16" height="14" fill="#FE9234" opacity="0.6" rx="1.5"/>
+          <!-- Core 2: 3D Recon -->
+          <text x="424" y="160" font-size="9" fill="#555" font-weight="600">Core 2</text>
+          <text x="424" y="170" font-size="7" fill="#999">3D Recon</text>
+          <rect x="498" y="152" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="536" y="152" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="572" y="152" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="612" y="152" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="656" y="152" width="20" height="14" fill="#E26768" opacity="0.6" rx="1.5"/>
+          <!-- Core 1: 3D Recon -->
+          <text x="424" y="200" font-size="9" fill="#555" font-weight="600">Core 1</text>
+          <text x="424" y="210" font-size="7" fill="#999">3D Recon</text>
+          <rect x="478" y="192" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="516" y="192" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="554" y="192" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="592" y="192" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="636" y="190" width="20" height="18" fill="#E26768" stroke="#e67e00" stroke-width="1.5" rx="1.5"/>
+          <rect x="672" y="192" width="20" height="14" fill="#E26768" opacity="0.6" rx="1.5"/>
+          <!-- Core 0: Camera (bottom row) -->
+          <text x="424" y="240" font-size="9" fill="#555" font-weight="600">Core 0</text>
+          <text x="424" y="250" font-size="7" fill="#999">Camera</text>
+          <rect x="460" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="476" y="232" width="18" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <rect x="496" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="512" y="232" width="16" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <rect x="530" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="546" y="232" width="20" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <rect x="568" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="584" y="232" width="16" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <rect x="602" y="230" width="14" height="18" fill="#2B9F2A" stroke="#e67e00" stroke-width="1.5" rx="1.5"/>
+          <rect x="618" y="230" width="18" height="18" fill="#1773B2" stroke="#e67e00" stroke-width="1.5" rx="1.5"/>
+          <rect x="638" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="654" y="232" width="16" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <rect x="672" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.6" rx="1.5"/>
+          <text x="696" y="242" font-size="8" fill="#bbb">...</text>
+          <!-- CT marker -->
+          <line x1="698" y1="62" x2="698" y2="260" stroke="#d63031" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="698" y="270" font-size="8" fill="#d63031" font-weight="700" text-anchor="middle">CT = 28.53s</text>
+          <!-- Selected FOV annotation -->
+          <rect x="598" y="253" width="42" height="13" rx="3" fill="#fff3e0" stroke="#e67e00" stroke-width="0.5"/>
+          <text x="619" y="262" font-size="7" fill="#e67e00" font-weight="600" text-anchor="middle">FOV #4</text>
+        </svg>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <h4 style="color:var(--primary);font-size:.95rem;margin-bottom:8px">Left Panel &mdash; PCB Layout</h4>
+          <ul style="padding-left:20px;font-size:.88rem;line-height:2">
+            <li><strong>FOV rectangles:</strong> Each FOV is shown as a rectangle on the PCB board</li>
+            <li><strong>Components:</strong> Individual components inside their FOVs (gray=normal, green=fiducial, purple=barcode)</li>
+            <li><strong>Side FOV:</strong> FOVs containing side components show a blue dashed inner region</li>
+            <li><strong>Error FOV:</strong> Components outside FOV bounds are highlighted with a red border</li>
+            <li><strong>Trajectory:</strong> Inspection path connecting FOV centers as a polyline</li>
+            <li><strong>Step region:</strong> Step=1 areas shown with ochre dashed outline</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color:var(--accent);font-size:.95rem;margin-bottom:8px">Right Panel &mdash; Timing Gantt Chart</h4>
+          <ul style="padding-left:20px;font-size:.88rem;line-height:2">
+            <li><strong>Core 3+ (Inspect):</strong> Inspection time (orange)</li>
+            <li><strong>Core 1~2 (3D Recon):</strong> 3D Reconstruction time (red)</li>
+            <li><strong>Core 0 (Camera):</strong> Move (blue) + Capture (green) alternating</li>
+            <li><strong>CT:</strong> Total pipeline completion = last core finish time</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interaction -->
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3><span class="icon">&#x1F5B1;</span> Interaction Controls</h3>
+      <div class="grid-3">
+        <div style="text-align:center;padding:16px;background:var(--primary-light);border-radius:8px">
+          <div style="font-size:1.5rem;margin-bottom:6px">&#x1F5B1;</div>
+          <div style="font-weight:700;font-size:.9rem">Click a FOV</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-top:4px">Highlights its components on the PCB and corresponding timing bars on the Gantt chart</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--green-light);border-radius:8px">
+          <div style="font-size:1.5rem;margin-bottom:6px">&#x1F50D;</div>
+          <div style="font-weight:700;font-size:.9rem">Drag to Zoom</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-top:4px">Click and drag on either panel to zoom into a region for detailed inspection</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--accent-light);border-radius:8px">
+          <div style="font-size:1.5rem;margin-bottom:6px">&#x21BA;</div>
+          <div style="font-weight:700;font-size:.9rem">Double-Click to Reset</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-top:4px">Double-click anywhere to reset the zoom level back to the full view</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Coding -->
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3><span class="icon">&#x1F3A8;</span> Color Coding Reference</h3>
+      <table style="width:100%;font-size:.85rem;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--primary);color:#fff">
+            <th style="padding:10px;text-align:left">Color</th>
+            <th style="padding:10px;text-align:left">Element</th>
+            <th style="padding:10px;text-align:left">Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee"><span style="display:inline-block;width:20px;height:14px;background:#00a832;border-radius:2px;vertical-align:middle"></span> Green</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Component</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Fiducial mark (type=2)</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee"><span style="display:inline-block;width:20px;height:14px;background:#7b1fa2;border-radius:2px;vertical-align:middle"></span> Purple</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Component</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Barcode (type=1) &mdash; or error component (filled red with X mark)</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee"><span style="display:inline-block;width:20px;height:14px;background:#666;border-radius:2px;vertical-align:middle"></span> Gray</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Component</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Normal component (type=0)</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee"><span style="display:inline-block;width:20px;height:14px;background:#1a73e8;border-radius:2px;vertical-align:middle"></span> Blue</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Component</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Side component</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee"><span style="display:inline-block;width:20px;height:14px;background:#e67e00;border-radius:2px;vertical-align:middle"></span> Orange</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">FOV</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Currently selected / highlighted FOV</td>
+          </tr>
+          <tr>
+            <td style="padding:8px;border-bottom:1px solid #eee"><span style="display:inline-block;width:20px;height:14px;background:#fff;border:2px solid #d63031;border-radius:2px;vertical-align:middle"></span> Red border</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">FOV</td>
+            <td style="padding:8px;border-bottom:1px solid #eee">Error FOV &mdash; contains components that violate coverage constraints</td>
+          </tr>
+          <tr>
+            <td style="padding:8px"><span style="display:inline-block;width:20px;height:14px;background:#d63031;border-radius:2px;vertical-align:middle;position:relative"><span style="position:absolute;color:#fff;font-size:10px;font-weight:700;left:4px;top:-2px">&times;</span></span> Red + X</td>
+            <td style="padding:8px">Component</td>
+            <td style="padding:8px">Error component &mdash; extends outside its assigned FOV boundary or is unassigned</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Gantt Chart Details -->
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3><span class="icon">&#x1F4CA;</span> Understanding the Gantt Chart</h3>
+      <p style="font-size:.9rem;margin-bottom:12px">The right panel displays a pipeline timing diagram showing how inspection tasks are distributed across CPU cores:</p>
+      <div class="gantt-legend" style="margin-bottom:16px">
+        <div class="gantt-legend-item"><div class="swatch" style="background:#1773B2"></div> Move (stage repositioning)</div>
+        <div class="gantt-legend-item"><div class="swatch" style="background:#2B9F2A"></div> Capture (camera image acquisition)</div>
+        <div class="gantt-legend-item"><div class="swatch" style="background:#E26768"></div> Reconstruction (3D height map)</div>
+        <div class="gantt-legend-item"><div class="swatch" style="background:#FE9234"></div> Inspection (defect detection)</div>
+      </div>
+      <div class="grid-2">
+        <div style="background:#f8f9fa;padding:14px;border-radius:8px">
+          <div style="font-weight:700;margin-bottom:6px;font-size:.9rem">Core Assignment</div>
+          <ul style="padding-left:20px;font-size:.85rem;line-height:1.9">
+            <li><strong>Core 3+ (C3, C4, ...):</strong> Handle inspection of reconstructed data</li>
+            <li><strong>Core 1&ndash;2 (C1, C2):</strong> Handle reconstruction of captured images</li>
+            <li><strong>Core 0 (C0):</strong> Dedicated to camera &mdash; alternates between Move and Capture</li>
+          </ul>
+        </div>
+        <div style="background:#f8f9fa;padding:14px;border-radius:8px">
+          <div style="font-weight:700;margin-bottom:6px;font-size:.9rem">Pipeline Behavior</div>
+          <ul style="padding-left:20px;font-size:.85rem;line-height:1.9">
+            <li>Tasks execute in a <strong>pipelined</strong> fashion across cores</li>
+            <li>More cores = more parallel inspection, reducing CT</li>
+            <li>The <strong>bottleneck</strong> determines overall CT &mdash; balance is key</li>
+            <li>CT is measured from the first Move to the last Inspection completion</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-info">
+      <span class="ci">&#x1F4A1;</span>
+      <span><strong>Pro tip:</strong> Use the viewer to identify bottlenecks in your solution. If the Gantt chart shows long idle gaps between bars, your FOV ordering or placement may benefit from optimization. Comparing result.html across different solver iterations helps you visualize improvements.</span>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Contest Format -->
+<div class="section" style="background:#fff" id="s2">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--accent)">2</span> Contest Format &amp; Scoring</div>
+    <div class="section-desc">The problem is published first, then participants are recruited. Write your code in the <code>solver/</code> folder.</div>
+
+    <!-- Scoring -->
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x1F3C6;</span> Scoring Method</h3>
+      <div class="formula-box" style="margin:12px 0">
+        <span class="label">Score</span> = AVG<sub>i=all</sub> ( Cycle Time<sub>i</sub> + Computation Time<sub>i</sub> ) &nbsp;&nbsp; (lower is better)
+      </div>
+      <p style="font-size:.88rem;color:var(--text2)">Each dataset has a fixed <code>max_core</code> (random 4&ndash;16). The Checker uses it directly &mdash; no core sweep. Cycle Time is the inspection time; Computation Time is the solver's execution time. For the full formula, examples, and detailed explanation, see <strong>Problem Description &sect;2 &ldquo;Contest Format &amp; Scoring&rdquo;</strong>.</p>
+      <div class="callout callout-info" style="margin:12px 0 0 0">
+        <span class="ci">&#x1F4A1;</span>
+        <span><strong>Key insight:</strong> Core count is a given constraint. Focus on <strong>minimizing FOV count and optimizing visit order</strong> while keeping computation time low.</span>
+      </div>
+    </div>
+
+    <!-- Important Notes -->
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3><span class="icon">&#x26D4;</span> Important Notes</h3>
+      <div class="callout callout-warn" style="margin:0 0 12px 0">
+        <span class="ci">&#x26A0;</span>
+        <span><strong style="color:var(--red)">Prohibited:</strong> It is forbidden to call the provided <strong>ky_solver/</strong> (Koh Young baseline) to generate or update solutions.<br>
+        Participants must generate <code>output_fov.csv</code> using their <strong>own algorithm</strong>. Directly or indirectly calling functions from <code>ky_solver/</code> to produce results is grounds for disqualification.<br>
+        However, using it for purposes that <strong>do not directly contribute to the solution output</strong>, such as generating training data, is permitted.</span>
+      </div>
+      <div class="callout callout-info" style="margin:0">
+        <span class="ci">&#x2705;</span>
+        <span><strong>Permitted:</strong> External libraries (numpy, scipy, OR-Tools, etc.) may be used freely. Using AI tools (ChatGPT, Claude, Copilot, etc.) for code writing is also allowed.</span>
+      </div>
+    </div>
+
+    <!-- Evaluation Environment -->
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <h3><span class="icon">&#x1F5A5;</span> Evaluation Environment</h3>
+      <div class="grid-2">
+        <div>
+          <ul style="padding-left:20px;font-size:.9rem;line-height:2.2">
+            <li>All teams' code runs on the <strong>same evaluation server</strong></li>
+            <li><strong>CPU Only</strong> &mdash; GPU not available</li>
+            <li><strong>Time limit</strong> applied per dataset (results up to that point are used if exceeded)</li>
+            <li>Participants develop freely on their own PC; final submission is the <code>solver/</code> folder</li>
+          </ul>
+        </div>
+        <div class="callout callout-warn" style="margin:0">
+          <span class="ci">&#x26A0;</span>
+          <span><strong>Eliminating hardware differences:</strong> Since all teams run on the same server, there is no advantage or disadvantage based on hardware. The contest is purely about algorithm efficiency.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Provided Materials -->
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3><span class="icon">&#x1F4E6;</span> Provided Materials</h3>
+      <div class="grid-2">
+        <div>
+          <table style="width:100%;font-size:.85rem;border-collapse:collapse">
+            <tr style="background:#e6f4ea"><th style="padding:8px;text-align:left;border-bottom:1px solid #ddd">File / Folder</th><th style="padding:8px;text-align:left;border-bottom:1px solid #ddd">Purpose</th></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>ky_solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee">Koh Young baseline solver (compiled binary, source not provided)</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee"><strong>Participant code folder</strong> &mdash; write your code here freely</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>utils/checker.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Constraint verification + automatic CT calculation</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>utils/generator.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Simulation data generator (unlimited training data)</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>1_generate_data.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Simulation data generator</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>2_run.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Run solver &amp; score (per solver)</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>3_view.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Render result.html viewer (per solver)</td></tr>
+            <tr><td style="padding:7px"><code>simulation_data/</code></td><td style="padding:7px">96 datasets (8 scenarios &times; 12)</td></tr>
+          </table>
+        </div>
+        <div>
+          <div class="code-block">
+<span style="color:#6A9955"># solver/__init__.py</span>
+<span style="color:#569cd6">from</span> .my_solver <span style="color:#569cd6">import</span> solve
+
+<span style="color:#6A9955"># solver/my_solver.py (filename is up to you)</span>
+<span style="color:#569cd6">def</span> <span style="color:#dcdcaa">solve</span>(data_path: <span style="color:#4ec9b0">str</span>) -> <span style="color:#4ec9b0">int</span>:
+    <span style="color:#6A9955"># Input: data folder path</span>
+    <span style="color:#6A9955"># Process: FOV placement + component assignment + order determination</span>
+    <span style="color:#6A9955"># Save: output_fov.csv</span>
+    <span style="color:#6A9955"># Return: FOV count (int)</span>
+    ...
+          </div>
+          <div class="callout callout-new" style="margin-top:8px">
+            <span class="ci">&#x2705;</span>
+            <span>With the generator + checker open-sourced, RL/ML-based approaches are possible. Traditional optimization, AI, hybrid &mdash; any method is welcome.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Glossary -->
+<div class="section" style="background:#f8f9fa" id="glossary">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--text2)">&#x1F4D6;</span> Glossary</div>
+    <table class="ct-table" style="font-size:.85rem">
+      <thead><tr><th style="width:140px">Term</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><strong>AOI</strong></td><td>Automated Optical Inspection &mdash; equipment that automatically inspects electronic components on PCBs using cameras</td></tr>
+        <tr><td><strong>PCB</strong></td><td>Printed Circuit Board &mdash; the board on which electronic components are mounted</td></tr>
+        <tr><td><strong>FOV</strong></td><td>Field of View &mdash; the rectangular area captured in a single camera shot</td></tr>
+        <tr><td><strong>CT</strong></td><td>Cycle Time &mdash; total inspection time for one PCB (seconds)</td></tr>
+        <tr><td><strong>Computation Time</strong></td><td>Solver computation time (seconds)</td></tr>
+        <tr><td><strong>Core</strong></td><td>Parallel processing unit in the inspection pipeline. C0=Capture/Move, C1~C2=3D Reconstruction, C3+=Inspection</td></tr>
+        <tr><td><strong>Pipeline</strong></td><td>Parallel structure where Capture &rarr; 3D Reconstruction &rarr; Inspection run concurrently across multiple Cores</td></tr>
+        <tr><td><strong>Fiducial</strong></td><td>Reference point defining the PCB coordinate origin (type=2). Must be placed exclusively in the first FOV</td></tr>
+        <tr><td><strong>Barcode</strong></td><td>PCB model identifier (type=1). Inspected right after Fiducial</td></tr>
+        <tr><td><strong>Side Camera</strong></td><td>Camera capturing solder fillet from an angled view. Side FOV = 1/2 of Top FOV size</td></tr>
+        <tr><td><strong>Step</strong></td><td>Height regions on PCB (step=0, 1). Transitioning between steps adds +5s penalty</td></tr>
+        <tr><td><strong>Penalty Solver</strong></td><td>Greedy correction auto-applied on constraint violations. Significantly increases CT</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="container">
+    4th Koh Young AI Contest &mdash; ICCAS 2026 &mdash; AOI Inspection Equipment Inspection Time Optimization
+  </div>
+</div>
+</div>
+
+<div class="lang-ko">
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"><img src="ky_logo.png" alt="Koh Young Technology"></div>
+  <div class="hero-content">
+    <div class="container">
+      <h1>AOI 검사시간 최적화 — 실무 가이드</h1>
+      <div class="subtitle">제4회 고영 AI 경진대회 &mdash; ICCAS 2026</div>
+    </div>
+  </div>
+</div>
+
+
+<div style="background:#fff;border-bottom:2px solid #e0e0e0;padding:8px 0;text-align:center;font-size:.85rem;position:sticky;top:0;z-index:999">
+  <div class="container" style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">
+    <a href="ICCAS_2026_CONTEST_RULES.html" class="nav-link" data-doc="대회규칙" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">대회규칙 ★</a>
+    <a href="ICCAS_2026_CONTEST_DATA_DESCRIPTION.html" class="nav-link" data-doc="데이터 설명" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">데이터 설명</a>
+    <a href="ICCAS_2026_CONTEST_GUIDE.html" class="nav-link" data-doc="실무가이드" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#fff;background:#1a73e8;transition:all .2s">실무가이드</a>
+    <a href="ICCAS_2026_CONTEST_TUTORIAL.html" class="nav-link" data-doc="튜토리얼" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">튜토리얼</a>
+    <a href="https://github.com/iccas2026-kohyoung/contest" class="nav-link" target="_blank" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">GitHub ↗</a>
+  </div>
+</div>
+
+<div style="background:#e8f0fe;border:1px solid #c2d7f2;border-radius:8px;padding:10px 16px;margin:12px auto;max-width:920px;font-size:.85rem;text-align:center">
+  &#x1F4D8; 이 문서는 보조 자료입니다. 공식 대회 규칙은 <a href="ICCAS_2026_CONTEST_RULES.html" style="color:#1a73e8;font-weight:700">대회규칙 ★</a>을 참고하세요.
+</div>
+
+<!-- 0. Quick Start -->
+<div class="section" style="background:#fff" id="ko-s0">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--green)">&#x26A1;</span> Quick Start &mdash; 5분 안에 시작하기</div>
+    <div class="section-desc">복잡해 보이지만, 실제로 해야 할 일은 단순합니다. <strong><code>solver/</code> 폴더에 코드를 작성</strong>하면 됩니다.</div>
+
+    <!-- Step 1: 설치 -->
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3><span class="icon">&#x2460;</span> 환경 설치 (1분)</h3>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># 필수 패키지 설치</span>
+pip install -r requirements.txt</div>
+    </div>
+
+    <!-- Step 2: 데이터 생성 -->
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3><span class="icon">&#x2461;</span> 데이터 생성 &amp; 베이스라인 실행 (2분)</h3>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># 시뮬레이션 데이터 생성 (8 시나리오 x 12 = 96개)</span>
+python 1_generate_data.py
+
+<span style="color:#6A9955"># 베이스라인 솔버로 전체 데이터 실행 → CT 확인</span>
+python 2_run.py --solver greedy</div>
+      <div style="margin-top:12px;font-size:.88rem;padding:12px;background:#f8f9fa;border-radius:6px;font-family:monospace;line-height:1.8">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PCB |&nbsp; FOVs |&nbsp; Cover |&nbsp; Order |&nbsp;&nbsp; CT (s)<br>
+        --------------------------------------------------<br>
+        &nbsp;&nbsp;PCB0000 |&nbsp;&nbsp;&nbsp; 42 |&nbsp;&nbsp; True |&nbsp;&nbsp; True |&nbsp;&nbsp; 28.53<br>
+        &nbsp;&nbsp;PCB0001 |&nbsp;&nbsp;&nbsp; 38 |&nbsp;&nbsp; True |&nbsp;&nbsp; True |&nbsp;&nbsp; 25.17<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ... |&nbsp;&nbsp; ... |&nbsp;&nbsp;&nbsp; ... |&nbsp;&nbsp;&nbsp; ... |&nbsp;&nbsp;&nbsp;&nbsp; ...
+      </div>
+    </div>
+
+    <!-- Step 3: solver 수정 -->
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x2462;</span> solver/ 폴더에 나만의 코드 작성 (여기가 대회의 핵심!)</h3>
+      <p style="font-size:.9rem;margin-bottom:12px"><code>solver/</code> 폴더 안에 자유롭게 파일을 만드세요. <code>solver/__init__.py</code>에서 <code>solve</code> 함수를 export하면 됩니다.</p>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># solver/__init__.py</span>
+<span style="color:#569cd6">from</span> .my_solver <span style="color:#569cd6">import</span> solve
+
+<span style="color:#6A9955"># solver/my_solver.py (파일명 자유)</span>
+<span style="color:#569cd6">def</span> <span style="color:#dcdcaa">solve</span>(data_folder: <span style="color:#4ec9b0">str</span>) -> <span style="color:#4ec9b0">int</span>:
+    <span style="color:#6A9955"># 1. input_component.csv, input_size.csv, input_parameter.csv 읽기</span>
+    <span style="color:#6A9955"># 2. FOV 배치 결정 (위치, 개수)</span>
+    <span style="color:#6A9955"># 3. 부품을 FOV에 할당</span>
+    <span style="color:#6A9955"># 4. 검사 순서 결정 (Fiducial → Barcode → 일반)</span>
+    <span style="color:#6A9955"># 5. output_fov.csv 저장</span>
+    <span style="color:#6A9955"># 6. return FOV 개수</span></div>
+      <div class="callout callout-info" style="margin-top:12px">
+        <span class="ci">&#x1F4A1;</span>
+        <span><strong>처음엔 간단하게:</strong> 모든 부품마다 FOV 1개씩 배치하는 것도 유효한 결과입니다. 거기서부터 FOV를 합치고, 순서를 개선해 나가면 됩니다.</span>
+      </div>
+
+      <!-- Before / After FOV 최적화 비교 -->
+      <div style="margin-top:20px">
+        <h4 style="margin:0 0 12px 0;color:var(--primary);font-size:.95rem">&#x1F4CA; FOV 배치 최적화 — Before vs After</h4>
+        <p style="font-size:.83rem;color:var(--text2);margin-bottom:14px">FOV 크기는 카메라 시야각으로 결정되므로 <strong>모든 FOV는 동일한 크기</strong>입니다. 핵심은 같은 크기의 FOV를 <strong>어디에, 몇 개</strong> 배치하느냐입니다.</p>
+        <div class="grid-2" style="gap:16px">
+          <!-- Before -->
+          <div style="border:2px solid #bbb;border-radius:10px;overflow:hidden">
+            <div style="font-size:.8rem;font-weight:700;text-align:center;padding:6px 0;background:#f5f5f5;color:#666">Before &mdash; 비효율 배치 (FOV 9개)</div>
+            <svg viewBox="0 0 300 210" style="width:100%;display:block;background:#fff">
+              <!-- PCB board -->
+              <rect x="10" y="10" width="280" height="185" fill="#fafafa" stroke="#999" stroke-width="0.5"/>
+
+              <!-- 12 components in 4 clusters -->
+              <!-- Cluster A (top-left) -->
+              <rect x="28" y="28" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="48" y="24" width="8" height="5" fill="#666" rx="0.5"/>
+              <rect x="38" y="40" width="11" height="6" fill="#666" rx="0.5"/>
+              <!-- Cluster B (top-right) -->
+              <rect x="185" y="26" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="205" y="30" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="195" y="42" width="11" height="6" fill="#666" rx="0.5"/>
+              <!-- Cluster C (bottom-left) -->
+              <rect x="30" y="110" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="50" y="106" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="40" y="120" width="11" height="6" fill="#666" rx="0.5"/>
+              <!-- Cluster D (bottom-right) -->
+              <rect x="188" y="108" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="208" y="112" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="198" y="122" width="11" height="6" fill="#666" rx="0.5"/>
+
+              <!-- 9 FOVs — ALL same size 60×45 — naive: one per component, overlapping -->
+              <rect x="18" y="18" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="38" y="15" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="28" y="30" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="175" y="18" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="185" y="22" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="20" y="98" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="32" y="96" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="178" y="100" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+              <rect x="190" y="104" width="60" height="45" fill="rgba(214,48,49,0.06)" stroke="#d63031" stroke-width="1"/>
+
+              <!-- Center dots for each FOV (at exact rect centers) -->
+              <circle cx="48" cy="40.5" r="1.5" fill="#d63031"/>
+              <circle cx="68" cy="37.5" r="1.5" fill="#d63031"/>
+              <circle cx="58" cy="52.5" r="1.5" fill="#d63031"/>
+              <circle cx="205" cy="40.5" r="1.5" fill="#d63031"/>
+              <circle cx="215" cy="44.5" r="1.5" fill="#d63031"/>
+              <circle cx="50" cy="120.5" r="1.5" fill="#d63031"/>
+              <circle cx="62" cy="118.5" r="1.5" fill="#d63031"/>
+              <circle cx="208" cy="122.5" r="1.5" fill="#d63031"/>
+              <circle cx="220" cy="126.5" r="1.5" fill="#d63031"/>
+
+              <!-- Trajectory through FOV centers -->
+              <polyline points="48,40.5 68,37.5 58,52.5 205,40.5 215,44.5 50,120.5 62,118.5 208,122.5 220,126.5" fill="none" stroke="rgba(214,48,49,0.45)" stroke-width="0.8"/>
+              <circle cx="48" cy="40.5" r="2.5" fill="#d63031"/>
+
+              <!-- Summary -->
+              <text x="150" y="202" font-size="8" fill="#d63031" font-weight="700" text-anchor="middle">FOV 9개 &mdash; 대부분 중복, 이동 거리 김</text>
+            </svg>
+          </div>
+
+          <!-- After -->
+          <div style="border:2px solid #0d904f;border-radius:10px;overflow:hidden">
+            <div style="font-size:.8rem;font-weight:700;text-align:center;padding:6px 0;background:#e6f4ea;color:#0d904f">After &mdash; 최적 배치 (FOV 4개)</div>
+            <svg viewBox="0 0 300 210" style="width:100%;display:block;background:#fff">
+              <!-- PCB board -->
+              <rect x="10" y="10" width="280" height="185" fill="#fafafa" stroke="#999" stroke-width="0.5"/>
+
+              <!-- Same 12 components (identical positions) -->
+              <!-- Cluster A -->
+              <rect x="28" y="28" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="48" y="24" width="8" height="5" fill="#666" rx="0.5"/>
+              <rect x="38" y="40" width="11" height="6" fill="#666" rx="0.5"/>
+              <!-- Cluster B -->
+              <rect x="185" y="26" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="205" y="30" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="195" y="42" width="11" height="6" fill="#666" rx="0.5"/>
+              <!-- Cluster C -->
+              <rect x="30" y="110" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="50" y="106" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="40" y="120" width="11" height="6" fill="#666" rx="0.5"/>
+              <!-- Cluster D -->
+              <rect x="188" y="108" width="10" height="6" fill="#666" rx="0.5"/>
+              <rect x="208" y="112" width="9" height="5" fill="#666" rx="0.5"/>
+              <rect x="198" y="122" width="11" height="6" fill="#666" rx="0.5"/>
+
+              <!-- 4 FOVs — ALL same size 60×45 — optimal: one per cluster -->
+              <rect x="18" y="16" width="60" height="45" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1"/>
+              <text x="48" y="54" font-size="8" fill="rgba(13,144,79,0.4)" text-anchor="middle" font-weight="600">0</text>
+              <rect x="175" y="16" width="60" height="45" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1"/>
+              <text x="205" y="54" font-size="8" fill="rgba(13,144,79,0.4)" text-anchor="middle" font-weight="600">1</text>
+              <rect x="20" y="96" width="60" height="45" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1"/>
+              <text x="50" y="134" font-size="8" fill="rgba(13,144,79,0.4)" text-anchor="middle" font-weight="600">2</text>
+              <rect x="178" y="96" width="60" height="45" fill="rgba(13,144,79,0.08)" stroke="#0d904f" stroke-width="1"/>
+              <text x="208" y="134" font-size="8" fill="rgba(13,144,79,0.4)" text-anchor="middle" font-weight="600">3</text>
+
+              <!-- Trajectory (short, efficient) -->
+              <polyline points="48,38 205,38 208,118 50,118" fill="none" stroke="rgba(13,144,79,0.5)" stroke-width="1.2"/>
+              <circle cx="48" cy="38" r="2.5" fill="#0d904f"/>
+              <circle cx="205" cy="38" r="1.5" fill="rgba(13,144,79,0.6)"/>
+              <circle cx="208" cy="118" r="1.5" fill="rgba(13,144,79,0.6)"/>
+              <circle cx="50" cy="118" r="1.5" fill="rgba(13,144,79,0.6)"/>
+
+              <!-- Summary -->
+              <text x="150" y="202" font-size="8" fill="#0d904f" font-weight="700" text-anchor="middle">FOV 4개 &mdash; 중복 없음, 이동 거리 짧음</text>
+            </svg>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding:10px 14px;background:#e8f5e9;border-radius:8px;font-size:.82rem;text-align:center">
+          <strong>핵심:</strong> FOV 크기는 고정 &mdash; 위치만 조절하여 <strong>적은 수의 FOV로 모든 부품을 커버</strong>하고, <strong>이동 경로를 최소화</strong>하는 것이 목표
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: 검증 -->
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <h3><span class="icon">&#x2463;</span> 결과 검증 (1분)</h3>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># 내 solver 실행 → 제약 검증 + CT 자동 계산</span>
+python 2_run.py --solver greedy
+
+<span style="color:#6A9955"># 채점만 (solver 실행 없이 기존 output 평가)</span>
+python 2_run.py --solver greedy --eval
+
+<span style="color:#6A9955"># 결과 인터랙티브 뷰어 열기</span>
+python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open</div>
+      <div class="grid-2" style="margin-top:12px">
+        <div class="callout callout-info" style="margin:0">
+          <span class="ci">&#x2705;</span>
+          <span><strong>Cover = True:</strong> 모든 부품이 FOV에 포함됨</span>
+        </div>
+        <div class="callout callout-info" style="margin:0">
+          <span class="ci">&#x2705;</span>
+          <span><strong>Order = True:</strong> 검사 순서 제약 통과</span>
+        </div>
+      </div>
+      <div class="callout callout-warn" style="margin-top:12px">
+        <span class="ci">&#x26A0;</span>
+        <span>Cover 또는 Order가 <strong>False</strong>이면 제약 위반 → <strong>penalty_solver</strong>가 자동 적용됩니다. <code>checker.py</code>가 어떤 제약을 위반했는지 로그로 알려줍니다.</span>
+      </div>
+
+      <!-- Penalty Solver 상세 설명 -->
+      <div style="margin-top:20px;padding:20px;background:linear-gradient(135deg,#fce8e6,#fff5f5);border:2px solid #ef9a9a;border-radius:12px">
+        <h4 style="margin:0 0 14px 0;color:var(--red);font-size:1rem">&#x26A0; Penalty Solver — 제약 위반 시 자동 적용</h4>
+        <p style="font-size:.88rem;margin-bottom:14px">
+          제약 조건(<code>cover_all_components</code> 또는 <code>fov_inspection_order</code>)을 위반하면 Checker가 <strong>penalty_solver</strong>를 자동 실행합니다.
+          참가자의 solver 출력 중 <strong>정상적인 FOV는 유지</strong>하고, 제약을 위반한(커버되지 않은) 부품에 대해서만 <strong>추가 FOV를 배치</strong>하여 CT를 재계산합니다.
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div style="background:#fff;padding:14px;border-radius:8px;border-left:3px solid var(--red)">
+            <div style="font-weight:700;color:var(--red);margin-bottom:6px;font-size:.88rem">1. 미커버 부품 탐지</div>
+            <div style="font-size:.84rem;line-height:1.7">
+              참가자의 <code>output_fov.csv</code>에서 커버되지 않은 부품 또는 검사 순서를 위반한 부품을 식별합니다.
+              정상적으로 커버된 부품과 FOV는 그대로 유지됩니다.
+            </div>
+          </div>
+          <div style="background:#fff;padding:14px;border-radius:8px;border-left:3px solid var(--red)">
+            <div style="font-weight:700;color:var(--red);margin-bottom:6px;font-size:.88rem">2. 추가 FOV 배치 (그리디)</div>
+            <div style="font-size:.84rem;line-height:1.7">
+              미커버 부품에 대해 <strong>그리디 방식으로 추가 FOV를 배치</strong>합니다.
+              추가된 FOV는 기존 경로 끝에 nearest neighbor 순서로 연결됩니다.<br>
+              <code style="font-size:.78rem;background:#fce8e6;padding:2px 6px;border-radius:4px">기존 FOV 유지 + 미커버 부품용 FOV 추가</code>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#fff;padding:14px;border-radius:8px;border:1px solid #ef9a9a">
+          <div style="font-weight:700;color:var(--red);margin-bottom:8px;font-size:.88rem">&#x26A0; 페널티 효과</div>
+          <div style="font-size:.84rem;line-height:1.7">
+            &bull; 참가자의 기존 FOV 배치는 유지되지만, <strong>추가 FOV로 인해 총 FOV 수와 이동 거리가 증가</strong>합니다.<br>
+            &bull; 추가 FOV의 그리디 배치는 최적과 거리가 있으므로, 잘 만든 solver 대비 <strong>CT가 증가</strong>합니다.<br>
+            &bull; 제약 조건을 만족하면서 더 나은 FOV 배치를 찾는 것이 대회의 핵심입니다.
+          </div>
+        </div>
+
+        <div class="callout callout-danger" style="margin-top:14px;margin-bottom:0">
+          <span class="ci">&#x1F525;</span>
+          <span><strong>반드시 모든 부품을 커버하세요!</strong> penalty_solver가 적용되면 추가 FOV가 삽입되어 CT가 증가합니다.
+          <code>cover_all_components() = True</code>와 <code>fov_inspection_order() = True</code>를 항상 확인하세요.</span>
+        </div>
+      </div>
+
+      <!-- Viewer 비교: 정상 vs 패널티 -->
+      <div style="margin-top:20px">
+        <h4 style="margin:0 0 12px 0;color:var(--purple);font-size:.95rem">&#x1F50D; result.html Viewer — 정상 vs 제약 위반</h4>
+        <p style="font-size:.83rem;color:var(--text2);margin-bottom:14px"><code>3_view.py --solver &lt;name&gt;</code> 실행 후 각 <code>&lt;dataset&gt;/&lt;solver&gt;/</code> 폴더에 <code>result.html</code>이 생성됩니다. 브라우저에서 열면 PCB 배치와 Timing을 인터랙티브하게 확인할 수 있습니다.</p>
+        <div class="grid-2" style="gap:16px">
+          <!-- 정상 케이스 -->
+          <div style="border:2px solid #0d904f;border-radius:10px;overflow:hidden">
+            <div style="font-size:.8rem;font-weight:700;text-align:center;padding:6px 0;background:#e6f4ea;color:#0d904f">정상 (Cover=PASS, Order=PASS)</div>
+            <svg viewBox="0 0 400 220" style="width:100%;display:block;background:#fff">
+              <!-- Header bar -->
+              <rect x="0" y="0" width="400" height="28" fill="#f5f5f5"/>
+              <text x="8" y="18" font-size="10" font-weight="700" fill="#333">PCB Inspection Viewer</text>
+              <text x="160" y="18" font-size="8" fill="#666">FOVs: <tspan font-weight="700">6</tspan></text>
+              <text x="210" y="18" font-size="8" fill="#666">CT: <tspan font-weight="700">45.2s</tspan></text>
+              <!-- PASS badges -->
+              <rect x="262" y="7" width="52" height="15" rx="3" fill="#d4edda"/>
+              <text x="274" y="18" font-size="7.5" font-weight="600" fill="#155724">PASS</text>
+              <rect x="320" y="7" width="52" height="15" rx="3" fill="#d4edda"/>
+              <text x="332" y="18" font-size="7.5" font-weight="600" fill="#155724">PASS</text>
+              <text x="262" y="7" font-size="6" fill="#999" dy="-1">Cover</text>
+              <text x="320" y="7" font-size="6" fill="#999" dy="-1">Order</text>
+
+              <!-- PCB area -->
+              <rect x="8" y="32" width="230" height="180" fill="#fff" stroke="#999" stroke-width="0.5"/>
+              <!-- Normal FOVs (blue/gray) -->
+              <rect x="15" y="38" width="70" height="50" fill="rgba(0,153,25,0.15)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="50" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">0</text>
+              <rect x="90" y="38" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="125" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">1</text>
+              <rect x="165" y="38" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="200" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">2</text>
+              <rect x="15" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="50" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">3</text>
+              <rect x="90" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="125" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">4</text>
+              <rect x="165" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="200" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">5</text>
+              <!-- Components (gray dots) -->
+              <rect x="25" y="48" width="12" height="6" fill="#00a832" rx="1"/>
+              <rect x="42" y="52" width="8" height="5" fill="#666"/>
+              <rect x="55" y="45" width="10" height="7" fill="#666"/>
+              <rect x="100" y="50" width="9" height="5" fill="#666"/>
+              <rect x="115" y="42" width="11" height="6" fill="#666"/>
+              <rect x="140" y="55" width="8" height="4" fill="#666"/>
+              <rect x="175" y="48" width="10" height="5" fill="#666"/>
+              <rect x="195" y="55" width="12" height="6" fill="#666"/>
+              <rect x="25" y="105" width="9" height="5" fill="#666"/>
+              <rect x="42" y="110" width="11" height="6" fill="#666"/>
+              <rect x="100" y="108" width="8" height="5" fill="#666"/>
+              <rect x="120" y="115" width="10" height="4" fill="#666"/>
+              <rect x="175" y="102" width="12" height="7" fill="#666"/>
+              <rect x="195" y="112" width="9" height="5" fill="#666"/>
+              <!-- Trajectory -->
+              <polyline points="50,63 125,63 200,63 200,120 125,120 50,120" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
+              <circle cx="50" cy="63" r="3" fill="#d63031"/>
+              <circle cx="125" cy="63" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="200" cy="63" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="200" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="125" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="50" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+
+              <!-- Timing panel (right) -->
+              <rect x="245" y="32" width="150" height="180" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+              <!-- Legend -->
+              <rect x="252" y="36" width="8" height="8" fill="#1773B2"/><text x="263" y="43" font-size="6" fill="#444">Move</text>
+              <rect x="290" y="36" width="8" height="8" fill="#2B9F2A"/><text x="301" y="43" font-size="6" fill="#444">Capture</text>
+              <rect x="335" y="36" width="8" height="8" fill="#E26768"/><text x="346" y="43" font-size="6" fill="#444">Recon</text>
+              <!-- Gantt bars (normal) -->
+              <text x="250" y="60" font-size="6" fill="#999">C3</text>
+              <rect x="296" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <rect x="332" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <rect x="368" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <text x="250" y="78" font-size="6" fill="#999">C2</text>
+              <rect x="282" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="320" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="356" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <text x="250" y="96" font-size="6" fill="#999">C1</text>
+              <rect x="280" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="316" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="354" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <text x="250" y="114" font-size="6" fill="#999">C0</text>
+              <rect x="260" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="282" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="296" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="318" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="332" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="354" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="368" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <!-- CT label -->
+              <text x="325" y="200" font-size="8" fill="#666" text-anchor="middle">Timelog (45.2s)</text>
+            </svg>
+          </div>
+
+          <!-- 패널티 케이스 -->
+          <div style="border:2px solid #d93025;border-radius:10px;overflow:hidden">
+            <div style="font-size:.8rem;font-weight:700;text-align:center;padding:6px 0;background:#fce8e6;color:#d93025">제약 위반 (Cover=FAIL) — 부품 누락 + FOV 이탈</div>
+            <svg viewBox="0 0 400 220" style="width:100%;display:block;background:#fff">
+              <!-- Header bar -->
+              <rect x="0" y="0" width="400" height="28" fill="#f5f5f5"/>
+              <text x="8" y="18" font-size="10" font-weight="700" fill="#d63031">PCB Inspection Viewer</text>
+              <text x="160" y="18" font-size="8" fill="#666">FOVs: <tspan font-weight="700">5</tspan></text>
+              <text x="210" y="18" font-size="8" fill="#666">CT: <tspan font-weight="700">38.7s</tspan></text>
+              <!-- FAIL badge -->
+              <rect x="262" y="7" width="52" height="15" rx="3" fill="#f8d7da"/>
+              <text x="278" y="18" font-size="7.5" font-weight="600" fill="#721c24">FAIL</text>
+              <rect x="320" y="7" width="52" height="15" rx="3" fill="#d4edda"/>
+              <text x="332" y="18" font-size="7.5" font-weight="600" fill="#155724">PASS</text>
+              <text x="262" y="7" font-size="6" fill="#999" dy="-1">Cover</text>
+              <text x="320" y="7" font-size="6" fill="#999" dy="-1">Order</text>
+
+              <!-- PCB area -->
+              <rect x="8" y="32" width="230" height="180" fill="#fff" stroke="#999" stroke-width="0.5"/>
+              <!-- Normal FOVs -->
+              <rect x="15" y="38" width="70" height="50" fill="rgba(0,153,25,0.15)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="50" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">0</text>
+              <rect x="90" y="38" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="125" y="66" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">1</text>
+              <!-- ERROR FOV (red) — 부품이 FOV 밖으로 삐져나감 -->
+              <rect x="165" y="38" width="70" height="50" fill="rgba(205,99,71,0.2)" stroke="#cd4547" stroke-width="1.2"/>
+              <text x="200" y="66" font-size="8" fill="#cd4547" font-weight="700" text-anchor="middle">2</text>
+              <rect x="15" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="50" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">3</text>
+              <rect x="90" y="95" width="70" height="50" fill="rgba(0,0,0,0.06)" stroke="#aaa" stroke-width="0.5"/>
+              <text x="125" y="123" font-size="8" fill="rgba(0,0,0,0.3)" text-anchor="middle">4</text>
+              <!-- 누락 영역 — FOV 없는 부품들 -->
+
+              <!-- Normal components -->
+              <rect x="25" y="48" width="12" height="6" fill="#00a832" rx="1"/>
+              <rect x="42" y="52" width="8" height="5" fill="#666"/>
+              <rect x="55" y="45" width="10" height="7" fill="#666"/>
+              <rect x="100" y="50" width="9" height="5" fill="#666"/>
+              <rect x="115" y="42" width="11" height="6" fill="#666"/>
+              <rect x="140" y="55" width="8" height="4" fill="#666"/>
+              <!-- ERROR components (red) — FOV 이탈 -->
+              <rect x="225" y="45" width="14" height="8" fill="#d63031" rx="1"/>
+              <rect x="228" y="58" width="10" height="6" fill="#d63031" rx="1"/>
+              <!-- 누락 부품 (빨간색, FOV 없는 영역) -->
+              <rect x="175" y="160" width="11" height="6" fill="#d63031" rx="1"/>
+              <rect x="195" y="165" width="9" height="5" fill="#d63031" rx="1"/>
+              <rect x="210" y="155" width="13" height="7" fill="#d63031" rx="1"/>
+              <!-- Normal components (others) -->
+              <rect x="25" y="105" width="9" height="5" fill="#666"/>
+              <rect x="42" y="110" width="11" height="6" fill="#666"/>
+              <rect x="100" y="108" width="8" height="5" fill="#666"/>
+              <rect x="120" y="115" width="10" height="4" fill="#666"/>
+              <!-- Trajectory -->
+              <polyline points="50,63 125,63 200,63 200,120 125,120" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
+              <circle cx="50" cy="63" r="3" fill="#d63031"/>
+              <circle cx="125" cy="63" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="200" cy="63" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="200" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+              <circle cx="125" cy="120" r="1.5" fill="rgba(0,0,0,0.5)"/>
+
+              <!-- Error annotations -->
+              <line x1="232" y1="48" x2="232" y2="35" stroke="#d63031" stroke-width="0.8" stroke-dasharray="2,2"/>
+              <text x="230" y="33" font-size="6" fill="#d63031" font-weight="700">FOV 이탈!</text>
+              <circle cx="190" cy="163" r="18" fill="none" stroke="#d63031" stroke-width="1" stroke-dasharray="3,2"/>
+              <text x="190" y="188" font-size="6" fill="#d63031" font-weight="700" text-anchor="middle">FOV 미할당</text>
+
+              <!-- Timing panel (right) -->
+              <rect x="245" y="32" width="150" height="180" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+              <!-- Legend -->
+              <rect x="252" y="36" width="8" height="8" fill="#1773B2"/><text x="263" y="43" font-size="6" fill="#444">Move</text>
+              <rect x="290" y="36" width="8" height="8" fill="#2B9F2A"/><text x="301" y="43" font-size="6" fill="#444">Capture</text>
+              <rect x="335" y="36" width="8" height="8" fill="#E26768"/><text x="346" y="43" font-size="6" fill="#444">Recon</text>
+              <!-- Gantt bars -->
+              <text x="250" y="60" font-size="6" fill="#999">C3</text>
+              <rect x="296" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <rect x="332" y="52" width="14" height="10" fill="#FE9234" opacity="0.7" rx="1"/>
+              <text x="250" y="78" font-size="6" fill="#999">C2</text>
+              <rect x="282" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="320" y="70" width="16" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <text x="250" y="96" font-size="6" fill="#999">C1</text>
+              <rect x="280" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <rect x="316" y="88" width="18" height="10" fill="#E26768" opacity="0.7" rx="1"/>
+              <text x="250" y="114" font-size="6" fill="#999">C0</text>
+              <rect x="260" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="282" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="296" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <rect x="318" y="106" width="12" height="10" fill="#1773B2" opacity="0.7" rx="1"/>
+              <rect x="332" y="106" width="20" height="10" fill="#2B9F2A" opacity="0.7" rx="1"/>
+              <!-- CT label -->
+              <text x="325" y="200" font-size="8" fill="#666" text-anchor="middle">Timelog (38.7s)</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 에러 로그 예시 -->
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="background:#e6f4ea;border-radius:8px;padding:12px 16px;border:1px solid #c8e6c9">
+            <div style="font-weight:700;color:#0d904f;font-size:.82rem;margin-bottom:6px">&#x2705; 정상 출력 (2_run.py --solver greedy)</div>
+            <div class="code-block" style="font-size:.78rem;padding:8px 12px;margin:0">
+       PCB | FOVs | Core | Cover | Order |   CT (s)
+----------------------------------------------------------
+    PCB_01 |     6 |    10 |   True |   True |    <span style="color:#1773B2">45.20</span>
+    PCB_02 |     8 |    12 |   True |   True |    <span style="color:#1773B2">52.80</span></div>
+          </div>
+          <div style="background:#fce8e6;border-radius:8px;padding:12px 16px;border:1px solid #f5c6cb">
+            <div style="font-weight:700;color:#d93025;font-size:.82rem;margin-bottom:6px">&#x274C; 제약 위반 → penalty_solver 자동 적용</div>
+            <div class="code-block" style="font-size:.78rem;padding:8px 12px;margin:0">
+       PCB | FOVs | Core | Cover | Order |   CT (s)
+----------------------------------------------------------
+    PCB_01 |     6 |    10 |   True |   True |    <span style="color:#1773B2">45.20</span>
+    PCB_02 |     5 |    12 |  <span style="color:#d93025">False</span> |   True |   <span style="color:#d93025">78.50*</span>
+----------------------------------------------------------
+       AVG |       |       |        |        |    61.85
+
+<span style="color:#d93025;font-weight:700">* = penalty_solver applied (1/2 datasets)</span></div>
+            <div style="margin-top:8px;font-size:.8rem;color:#666;line-height:1.6">
+              <strong>Cover=False</strong> 또는 <strong>Order=False</strong>이면 미커버 부품에 대해 penalty_solver가 추가 FOV를 배치합니다.<br>
+              CT 옆의 <code style="color:#d93025">*</code> 표시가 penalty가 적용된 데이터임을 나타냅니다. error.log에서 위반 내용을 확인할 수 있습니다.
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info" style="margin-top:14px">
+          <span class="ci">&#x1F4A1;</span>
+          <span><strong>Viewer 활용법:</strong> <code>python 3_view.py --solver greedy --open</code>으로 <code>result.html</code>을 생성하고 열 수 있습니다. FOV 클릭 시 해당 부품과 Timing이 하이라이트됩니다. 드래그로 확대, 더블클릭으로 원래 크기로 돌아갑니다. Step 필터(Step=0/Step=1)로 단차별 보기도 가능합니다.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 전체 흐름 요약 -->
+    <div class="flow" style="margin:24px 0">
+      <div class="flow-step" style="background:#e6f4ea;border-color:var(--green)"><div class="step-num" style="color:var(--green)">STEP 1</div><div class="step-label">데이터 생성</div><div class="step-desc">generator.py</div></div>
+      <div class="flow-arrow">&#x276F;</div>
+      <div class="flow-step" style="background:#fff3e0;border-color:var(--accent)"><div class="step-num" style="color:var(--accent)">STEP 2</div><div class="step-label">solver/ 작성</div><div class="step-desc">FOV 배치 + 순서</div></div>
+      <div class="flow-arrow">&#x276F;</div>
+      <div class="flow-step" style="background:#e8f0fe;border-color:var(--primary)"><div class="step-num" style="color:var(--primary)">STEP 3</div><div class="step-label">검증 &amp; 개선</div><div class="step-desc">checker.py → CT 확인</div></div>
+      <div class="flow-arrow">&#x276F;</div>
+      <div class="flow-step" style="background:#f3e5f5;border-color:var(--purple)"><div class="step-num" style="color:var(--purple)">STEP 4</div><div class="step-label">제출</div><div class="step-desc">solver/ 폴더 제출</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 1-1. result.html Viewer 사용법 -->
+<div class="section" style="background:#f8f9fa" id="ko-s-viewer">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--purple)">&#x1F50D;</span> result.html Viewer 사용법</div>
+    <div class="section-desc"><code>3_view.py --solver &lt;name&gt;</code>을 실행하면 각 <code>&lt;dataset&gt;/&lt;solver&gt;/</code> 폴더에 <code>result.html</code>이 생성됩니다. 브라우저에서 열면 PCB 배치와 Timing을 인터랙티브하게 확인할 수 있습니다.</div>
+
+    <!-- 생성 방법 -->
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <h3><span class="icon">&#x2460;</span> Viewer 생성</h3>
+      <div class="code-block" style="font-size:.85rem">
+<span style="color:#6A9955"># 특정 solver의 result.html 생성</span>
+python 3_view.py --solver greedy
+
+<span style="color:#6A9955"># 특정 데이터셋만 생성하고 브라우저에서 열기</span>
+python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
+
+<span style="color:#6A9955"># 생성된 viewer 위치</span>
+<span style="color:#6A9955"># simulation_data/S00_sparse_fast_001/greedy/result.html</span></div>
+    </div>
+
+    <!-- 화면 구성 -->
+    <div class="card" style="border-left:4px solid var(--primary)">
+      <h3><span class="icon">&#x2461;</span> 화면 구성</h3>
+
+      <!-- 상단 — 헤더 바 -->
+      <h4 style="font-size:.9rem;margin-bottom:8px;color:var(--green)">상단 — 헤더 바</h4>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <div style="padding:8px 14px;background:#f5f5f5;border-radius:8px;font-size:.86rem"><strong>FOVs:</strong> 총 FOV 개수</div>
+        <div style="padding:8px 14px;background:#f5f5f5;border-radius:8px;font-size:.86rem"><strong>CT:</strong> 계산된 Cycle Time (초)</div>
+        <div style="padding:8px 14px;border-radius:8px;font-size:.86rem;background:#d4edda;color:#155724"><strong>Cover: PASS</strong></div>
+        <div style="padding:8px 14px;border-radius:8px;font-size:.86rem;background:#d4edda;color:#155724"><strong>Order: PASS</strong></div>
+        <div style="padding:8px 14px;border-radius:8px;font-size:.86rem;background:#f8d7da;color:#721c24"><strong>Cover: FAIL</strong> — 미커버 부품 존재</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.86rem;margin-bottom:20px">
+        <strong>Step 필터:</strong>
+        <span style="padding:4px 12px;background:#e67e00;color:#fff;border-radius:4px;font-size:.82rem;font-weight:600">All</span>
+        <span style="padding:4px 12px;background:#fff;border:1px solid #bbb;border-radius:4px;font-size:.82rem;font-weight:600">Step=0</span>
+        <span style="padding:4px 12px;background:#fff;border:1px solid #bbb;border-radius:4px;font-size:.82rem;font-weight:600">Step=1</span>
+        <span style="color:var(--text2)">— 클릭하면 해당 Step의 FOV/부품만 표시, 나머지는 흐리게 처리</span>
+      </div>
+
+      <!-- Viewer 일러스트 -->
+      <div style="border:2px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px">
+        <svg viewBox="0 0 720 300" style="width:100%;display:block;background:#fff">
+          <!-- ===== Header Bar ===== -->
+          <rect x="0" y="0" width="720" height="32" fill="#f5f5f5" stroke="#ddd" stroke-width="0.5"/>
+          <text x="14" y="21" font-size="12" font-weight="700" fill="#333">PCB Inspection Viewer</text>
+          <text x="200" y="21" font-size="10" fill="#666">FOVs: <tspan font-weight="700">42</tspan></text>
+          <text x="270" y="21" font-size="10" fill="#666">CT: <tspan font-weight="700">28.53s</tspan></text>
+          <!-- PASS badges -->
+          <rect x="350" y="8" width="62" height="18" rx="4" fill="#d4edda"/>
+          <text x="364" y="21" font-size="9" font-weight="600" fill="#155724">Cover: PASS</text>
+          <rect x="420" y="8" width="62" height="18" rx="4" fill="#d4edda"/>
+          <text x="434" y="21" font-size="9" font-weight="600" fill="#155724">Order: PASS</text>
+          <!-- Step filter buttons -->
+          <rect x="510" y="8" width="30" height="18" rx="4" fill="#e67e00"/>
+          <text x="518" y="21" font-size="8" font-weight="700" fill="#fff">All</text>
+          <rect x="546" y="8" width="42" height="18" rx="4" fill="#fff" stroke="#bbb" stroke-width="0.5"/>
+          <text x="552" y="21" font-size="8" font-weight="600" fill="#666">Step=0</text>
+          <rect x="594" y="8" width="42" height="18" rx="4" fill="#fff" stroke="#bbb" stroke-width="0.5"/>
+          <text x="600" y="21" font-size="8" font-weight="600" fill="#666">Step=1</text>
+
+          <!-- ===== Left: PCB Panel ===== -->
+          <rect x="8" y="40" width="400" height="252" fill="#fff" stroke="#ccc" stroke-width="0.5"/>
+          <!-- Panel label -->
+          <text x="14" y="55" font-size="9" fill="#999" font-weight="600">PCB Layout</text>
+
+          <!-- PCB board outline -->
+          <rect x="20" y="62" width="376" height="220" fill="#fafafa" stroke="#999" stroke-width="0.5"/>
+
+          <!-- Step=1 region (dashed ochre) -->
+          <rect x="200" y="170" width="180" height="100" fill="rgba(230,126,0,0.05)" stroke="#c8a040" stroke-width="1" stroke-dasharray="5,3" rx="2"/>
+          <text x="208" y="183" font-size="7" fill="#c8a040" font-weight="600">Step=1 영역</text>
+
+          <!-- FOV 0: Fiducial (green tint) -->
+          <rect x="28" y="70" width="72" height="52" fill="rgba(0,153,25,0.12)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="64" y="100" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">0</text>
+          <!-- Fiducial component -->
+          <rect x="42" y="82" width="14" height="8" fill="#00a832" rx="1"/>
+          <rect x="60" y="86" width="10" height="6" fill="#666" rx="0.5"/>
+
+          <!-- FOV 1: Barcode (purple tint) -->
+          <rect x="108" y="70" width="72" height="52" fill="rgba(123,31,162,0.1)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="144" y="100" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">1</text>
+          <!-- Barcode component -->
+          <rect x="120" y="80" width="12" height="7" fill="#7b1fa2" rx="1"/>
+          <rect x="138" y="85" width="9" height="5" fill="#666" rx="0.5"/>
+          <rect x="152" y="78" width="11" height="6" fill="#666" rx="0.5"/>
+
+          <!-- FOV 2: Normal (gray) -->
+          <rect x="188" y="70" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="224" y="100" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">2</text>
+          <rect x="200" y="82" width="10" height="5" fill="#666" rx="0.5"/>
+          <rect x="215" y="78" width="12" height="7" fill="#666" rx="0.5"/>
+          <rect x="232" y="84" width="9" height="5" fill="#666" rx="0.5"/>
+          <rect x="246" y="80" width="8" height="6" fill="#666" rx="0.5"/>
+
+          <!-- FOV 3: Normal -->
+          <rect x="268" y="70" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="304" y="100" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">3</text>
+          <rect x="280" y="80" width="11" height="6" fill="#666" rx="0.5"/>
+          <rect x="296" y="84" width="9" height="5" fill="#666" rx="0.5"/>
+          <rect x="312" y="78" width="13" height="7" fill="#666" rx="0.5"/>
+
+          <!-- FOV 4: Selected (orange highlight) -->
+          <rect x="28" y="130" width="72" height="52" fill="rgba(255,180,0,0.2)" stroke="#e67e00" stroke-width="2"/>
+          <text x="64" y="160" font-size="9" fill="#e67e00" font-weight="700" text-anchor="middle">4</text>
+          <rect x="40" y="140" width="10" height="6" fill="#e67e00" rx="0.5"/>
+          <rect x="55" y="144" width="12" height="5" fill="#e67e00" rx="0.5"/>
+          <rect x="72" y="138" width="9" height="7" fill="#e67e00" rx="0.5"/>
+          <!-- Side FOV (blue dashed) -->
+          <rect x="46" y="143" width="36" height="26" fill="rgba(40,80,220,0.06)" stroke="#2850dc" stroke-width="0.8" stroke-dasharray="3,2" rx="1"/>
+
+          <!-- FOV 5: Normal -->
+          <rect x="108" y="130" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="144" y="160" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">5</text>
+          <rect x="118" y="140" width="11" height="6" fill="#666" rx="0.5"/>
+          <rect x="135" y="144" width="10" height="5" fill="#666" rx="0.5"/>
+          <rect x="150" y="138" width="12" height="7" fill="#666" rx="0.5"/>
+
+          <!-- FOV 6,7 (Step=1 region) -->
+          <rect x="210" y="190" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="246" y="220" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">6</text>
+          <rect x="222" y="200" width="10" height="5" fill="#666" rx="0.5"/>
+          <rect x="238" y="204" width="12" height="6" fill="#666" rx="0.5"/>
+          <rect x="256" y="198" width="9" height="5" fill="#666" rx="0.5"/>
+
+          <rect x="290" y="190" width="72" height="52" fill="rgba(0,0,0,0.04)" stroke="#aaa" stroke-width="0.5"/>
+          <text x="326" y="220" font-size="9" fill="rgba(0,0,0,0.3)" text-anchor="middle">7</text>
+          <rect x="300" y="200" width="11" height="6" fill="#666" rx="0.5"/>
+          <rect x="318" y="204" width="10" height="5" fill="#666" rx="0.5"/>
+          <rect x="334" y="198" width="12" height="7" fill="#666" rx="0.5"/>
+
+          <!-- Trajectory (visit order path) -->
+          <polyline points="64,96 144,96 224,96 304,96 304,156 64,156 144,156 246,216 326,216" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+          <circle cx="64" cy="96" r="3.5" fill="#d63031"/>
+          <circle cx="144" cy="96" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="224" cy="96" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="304" cy="96" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="64" cy="156" r="2" fill="#e67e00"/>
+          <circle cx="144" cy="156" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="246" cy="216" r="2" fill="rgba(0,0,0,0.4)"/>
+          <circle cx="326" cy="216" r="2" fill="rgba(0,0,0,0.4)"/>
+
+          <!-- Annotations (left panel) -->
+          <line x1="84" y1="156" x2="98" y2="172" stroke="#2850dc" stroke-width="0.6"/>
+          <text x="100" y="177" font-size="7" fill="#2850dc" font-weight="600">Side FOV</text>
+          <line x1="64" y1="166" x2="64" y2="182" stroke="#e67e00" stroke-width="0.6"/>
+          <text x="40" y="190" font-size="7" fill="#e67e00" font-weight="600">선택된 FOV</text>
+
+          <!-- ===== Right: Timing Panel (Gantt) ===== -->
+          <rect x="416" y="40" width="296" height="252" fill="#fff" stroke="#ccc" stroke-width="0.5"/>
+          <text x="422" y="52" font-size="8" fill="#999" font-weight="600">Timing (Gantt Chart)</text>
+
+          <!-- Legend -->
+          <rect x="534" y="44" width="8" height="7" fill="#1773B2" rx="1"/><text x="545" y="51" font-size="6" fill="#555">Move</text>
+          <rect x="574" y="44" width="8" height="7" fill="#2B9F2A" rx="1"/><text x="585" y="51" font-size="6" fill="#555">Capture</text>
+          <rect x="624" y="44" width="8" height="7" fill="#E26768" rx="1"/><text x="635" y="51" font-size="6" fill="#555">Recon</text>
+          <rect x="674" y="44" width="8" height="7" fill="#FE9234" rx="1"/><text x="685" y="51" font-size="6" fill="#555">Inspect</text>
+
+          <!-- Time axis -->
+          <line x1="470" y1="62" x2="470" y2="268" stroke="#eee" stroke-width="0.5"/>
+          <line x1="530" y1="62" x2="530" y2="268" stroke="#eee" stroke-width="0.5"/>
+          <line x1="590" y1="62" x2="590" y2="268" stroke="#eee" stroke-width="0.5"/>
+          <line x1="650" y1="62" x2="650" y2="268" stroke="#eee" stroke-width="0.5"/>
+          <text x="470" y="280" font-size="7" fill="#bbb" text-anchor="middle">5s</text>
+          <text x="530" y="280" font-size="7" fill="#bbb" text-anchor="middle">10s</text>
+          <text x="590" y="280" font-size="7" fill="#bbb" text-anchor="middle">15s</text>
+          <text x="650" y="280" font-size="7" fill="#bbb" text-anchor="middle">20s</text>
+
+          <!-- Core 4: Inspect (top row) -->
+          <text x="424" y="80" font-size="9" fill="#555" font-weight="600">Core 4</text>
+          <text x="424" y="90" font-size="7" fill="#999">Inspect</text>
+          <rect x="520" y="72" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="558" y="72" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="596" y="72" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="656" y="72" width="16" height="14" fill="#FE9234" opacity="0.6" rx="1.5"/>
+
+          <!-- Core 3: Inspect -->
+          <text x="424" y="120" font-size="9" fill="#555" font-weight="600">Core 3</text>
+          <text x="424" y="130" font-size="7" fill="#999">Inspect</text>
+          <rect x="502" y="112" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="540" y="112" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="576" y="112" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="616" y="112" width="16" height="14" fill="#FE9234" opacity="0.8" rx="1.5"/>
+          <rect x="680" y="112" width="16" height="14" fill="#FE9234" opacity="0.6" rx="1.5"/>
+
+          <!-- Core 2: 3D Recon -->
+          <text x="424" y="160" font-size="9" fill="#555" font-weight="600">Core 2</text>
+          <text x="424" y="170" font-size="7" fill="#999">3D Recon</text>
+          <rect x="498" y="152" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="536" y="152" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="572" y="152" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="612" y="152" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="656" y="152" width="20" height="14" fill="#E26768" opacity="0.6" rx="1.5"/>
+
+          <!-- Core 1: 3D Recon -->
+          <text x="424" y="200" font-size="9" fill="#555" font-weight="600">Core 1</text>
+          <text x="424" y="210" font-size="7" fill="#999">3D Recon</text>
+          <rect x="478" y="192" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="516" y="192" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="554" y="192" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="592" y="192" width="20" height="14" fill="#E26768" opacity="0.8" rx="1.5"/>
+          <rect x="636" y="190" width="20" height="18" fill="#E26768" stroke="#e67e00" stroke-width="1.5" rx="1.5"/>
+          <rect x="672" y="192" width="20" height="14" fill="#E26768" opacity="0.6" rx="1.5"/>
+
+          <!-- Core 0: Camera (Move + Capture alternating, bottom row) -->
+          <text x="424" y="240" font-size="9" fill="#555" font-weight="600">Core 0</text>
+          <text x="424" y="250" font-size="7" fill="#999">Camera</text>
+          <!-- FOV 0 -->
+          <rect x="460" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="476" y="232" width="18" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <!-- FOV 1 -->
+          <rect x="496" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="512" y="232" width="16" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <!-- FOV 2 -->
+          <rect x="530" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="546" y="232" width="20" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <!-- FOV 3 -->
+          <rect x="568" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="584" y="232" width="16" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <!-- FOV 4 (selected = highlighted) -->
+          <rect x="602" y="230" width="14" height="18" fill="#2B9F2A" stroke="#e67e00" stroke-width="1.5" rx="1.5"/>
+          <rect x="618" y="230" width="18" height="18" fill="#1773B2" stroke="#e67e00" stroke-width="1.5" rx="1.5"/>
+          <!-- FOV 5~8 -->
+          <rect x="638" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.8" rx="1.5"/>
+          <rect x="654" y="232" width="16" height="14" fill="#1773B2" opacity="0.8" rx="1.5"/>
+          <rect x="672" y="232" width="14" height="14" fill="#2B9F2A" opacity="0.6" rx="1.5"/>
+
+          <!-- CT marker -->
+          <line x1="696" y1="62" x2="696" y2="260" stroke="#d63031" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="696" y="270" font-size="8" fill="#d63031" font-weight="700" text-anchor="middle">CT = 28.53s</text>
+
+          <!-- Selected FOV annotation -->
+          <rect x="598" y="253" width="42" height="13" rx="3" fill="#fff3e0" stroke="#e67e00" stroke-width="0.5"/>
+          <text x="619" y="262" font-size="7" fill="#e67e00" font-weight="600" text-anchor="middle">FOV #4</text>
+        </svg>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size:.9rem;margin-bottom:8px;color:var(--primary)">좌측 — PCB 배치 패널</h4>
+          <ul style="padding-left:20px;font-size:.86rem;line-height:2">
+            <li><strong>FOV 박스</strong>: 사각형으로 표시. 번호는 검사 순서</li>
+            <li><strong>부품</strong>: FOV 내부의 작은 사각형 (회색=일반, 녹색=fiducial, 보라=barcode)</li>
+            <li><strong>Side FOV</strong>: Side 카메라 부품이 있는 FOV에 파란 점선 영역 표시</li>
+            <li><strong>에러 FOV</strong>: 부품이 FOV 밖으로 이탈하면 빨간 테두리 + 빨간 배경</li>
+            <li><strong>이동 경로</strong>: FOV 간 이동 궤적이 선으로 연결됨</li>
+            <li><strong>Step 영역</strong>: Step=1 구간은 황토색 점선으로 표시</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size:.9rem;margin-bottom:8px;color:var(--accent)">우측 — Timing 패널 (Gantt Chart)</h4>
+          <ul style="padding-left:20px;font-size:.86rem;line-height:2">
+            <li><strong>Core 3+ (Inspect)</strong>: 검사 시간 (주황)</li>
+            <li><strong>Core 1~2 (3D Recon)</strong>: 3D 복원 시간 (빨강)</li>
+            <li><strong>Core 0 (Camera)</strong>: Move(파랑) + Capture(녹색) 교대 표시</li>
+            <li><strong>CT</strong>: 전체 파이프라인 완료 시간 = 마지막 Core의 종료 시점</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 인터랙션 -->
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x2462;</span> 인터랙션 (마우스 조작)</h3>
+      <table class="ct-table">
+        <thead>
+          <tr><th style="width:30%">동작</th><th style="width:25%">PCB 패널</th><th>Timing 패널</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>클릭</strong></td>
+            <td>FOV 선택 → 주황색 하이라이트<br>해당 FOV의 부품이 강조 표시</td>
+            <td>해당 FOV의 Capture/Recon/Inspect 구간 하이라이트</td>
+          </tr>
+          <tr>
+            <td><strong>드래그</strong></td>
+            <td>영역 선택 → 확대 (Zoom In)<br>세밀한 부품/FOV 배치 확인 가능</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>더블클릭</strong></td>
+            <td>전체 보기로 복원 (Zoom Reset)</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><strong>빈 영역 클릭</strong></td>
+            <td>FOV 선택 해제</td>
+            <td>타이밍 하이라이트 해제</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FOV 색상 의미 -->
+    <div class="card" style="border-left:4px solid #7b1fa2">
+      <h3><span class="icon">&#x1F3A8;</span> FOV 색상 의미</h3>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;font-size:.86rem">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:24px;background:rgba(0,153,25,0.15);border:1px solid #aaa;border-radius:3px"></div>
+          <span><strong>연녹색</strong> — type=2 (Fiducial 포함 FOV)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:24px;background:rgba(123,31,162,0.15);border:1px solid #aaa;border-radius:3px"></div>
+          <span><strong>연보라</strong> — type=1 (Barcode 포함 FOV)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:24px;background:rgba(0,0,0,0.06);border:1px solid #aaa;border-radius:3px"></div>
+          <span><strong>연회색</strong> — type=0 (일반 FOV)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:24px;background:rgba(255,180,0,0.3);border:2px solid #e67e00;border-radius:3px"></div>
+          <span><strong>주황</strong> — 현재 선택된 FOV</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:24px;background:rgba(205,99,71,0.2);border:2px solid #cd4547;border-radius:3px"></div>
+          <span><strong>빨강 테두리</strong> — 에러 FOV (부품 이탈)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:24px;background:rgba(40,80,220,0.1);border:2px dashed #2850dc;border-radius:3px"></div>
+          <span><strong>파랑 점선</strong> — Side 카메라 FOV 영역</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 디버깅 팁 -->
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3><span class="icon">&#x1F41B;</span> Viewer로 디버깅하기</h3>
+      <div class="grid-2">
+        <div class="callout callout-danger" style="margin:0">
+          <span class="ci">&#x274C;</span>
+          <span><strong>부품 누락 확인:</strong> Cover=FAIL이면 빨간색 부품이 FOV 밖에 떨어져 있음. 드래그 확대로 정확한 위치 확인 → FOV 배치 수정</span>
+        </div>
+        <div class="callout callout-warn" style="margin:0">
+          <span class="ci">&#x26A0;</span>
+          <span><strong>경로 최적화:</strong> 이동 경로 선이 많이 교차하면 방문 순서가 비효율적. nearest-neighbor나 TSP 기법으로 개선 여지 확인</span>
+        </div>
+        <div class="callout callout-info" style="margin:0">
+          <span class="ci">&#x1F4CA;</span>
+          <span><strong>파이프라인 병목:</strong> Timing 패널에서 Core 0(Camera)에 긴 빈 시간이 있으면 이동 경로 비효율. Recon/Inspect에 빈 시간이 많으면 FOV 수를 줄일 여지</span>
+        </div>
+        <div class="callout callout-new" style="margin:0">
+          <span class="ci">&#x2705;</span>
+          <span><strong>Step 구분 확인:</strong> Step 필터로 Step=0 / Step=1 FOV를 각각 확인. Step 순서 제약(Step=0 → Step=1)이 올바른지 시각적으로 검증</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 2. 대회 형식 -->
+<div class="section" style="background:#fff" id="ko-s2">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--accent)">2</span> 대회 형식 및 채점</div>
+    <div class="section-desc">문제를 먼저 공개하고 참가자를 모집합니다. <code>solver/</code> 폴더에 코드를 작성하면 됩니다.</div>
+
+    <!-- 채점 -->
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3><span class="icon">&#x1F3C6;</span> 채점 방식</h3>
+      <div class="formula-box" style="margin:12px 0">
+        <span class="label">Score</span> = AVG<sub>i=all</sub> ( Cycle Time<sub>i</sub> + Computation Time<sub>i</sub> ) &nbsp;&nbsp; (낮을수록 우수)
+      </div>
+      <p style="font-size:.88rem;color:var(--text2)">각 데이터셋에 <code>max_core</code>가 고정 입력(랜덤 4~16)으로 주어지며, Checker가 그대로 사용합니다 (Core 수 탐색 없음). Cycle Time은 검사 시간, Computation Time은 solver 계산 시간입니다. 수식, 예시, 상세 설명은 <strong>문제설명 &sect;2 &ldquo;대회 형식 및 채점&rdquo;</strong>을 참조하세요.</p>
+      <div class="callout callout-info" style="margin:12px 0 0 0">
+        <span class="ci">&#x1F4A1;</span>
+        <span><strong>핵심:</strong> Core 수는 고정 입력이므로, <strong>FOV 수를 줄이고 방문 순서를 최적화</strong>하되 계산 시간도 함께 고려해야 합니다.</span>
+      </div>
+    </div>
+
+    <!-- 유의사항 -->
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3><span class="icon">&#x26D4;</span> 유의사항</h3>
+      <div class="callout callout-warn" style="margin:0 0 12px 0">
+        <span class="ci">&#x26A0;</span>
+        <span><strong style="color:var(--red)">금지:</strong> 제공된 <strong>ky_solver/</strong>(Koh Young 베이스라인)를 호출하여 해(solution)를 생성하거나 업데이트하는 방식은 금지합니다.<br>
+        참가자는 <strong>자체 알고리즘</strong>으로 <code>output_fov.csv</code>를 생성해야 하며, <code>ky_solver/</code>의 함수를 직접·간접적으로 호출하여 결과를 얻는 것은 실격 사유에 해당합니다.<br>
+        단, 학습용 데이터 생성 등 <strong>솔루션 출력에 직접 사용하지 않는 목적</strong>으로의 활용은 허용됩니다.</span>
+      </div>
+      <div class="callout callout-info" style="margin:0">
+        <span class="ci">&#x2705;</span>
+        <span><strong>허용:</strong> 외부 라이브러리(numpy, scipy, OR-Tools 등) 자유롭게 사용 가능합니다. AI 도구(ChatGPT, Claude, Copilot 등)를 활용한 코드 작성도 허용됩니다.</span>
+      </div>
+    </div>
+
+    <!-- 평가 환경 -->
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <h3><span class="icon">&#x1F5A5;</span> 평가 환경</h3>
+      <div class="grid-2">
+        <div>
+          <ul style="padding-left:20px;font-size:.9rem;line-height:2.2">
+            <li><strong>동일 평가 서버</strong>에서 모든 팀의 코드를 실행</li>
+            <li><strong>CPU Only</strong> &mdash; GPU 사용 불가</li>
+            <li>데이터당 <strong>시간 제한</strong> 적용 (초과 시 해당 시점까지의 결과 사용)</li>
+            <li>참가자는 자기 PC에서 자유롭게 개발, 최종 제출은 <code>solver/</code> 폴더</li>
+          </ul>
+        </div>
+        <div class="callout callout-warn" style="margin:0">
+          <span class="ci">&#x26A0;</span>
+          <span><strong>PC 환경 차이 해소:</strong> 모든 팀이 동일한 서버에서 실행되므로, 하드웨어 성능에 따른 유불리가 없습니다. 알고리즘 효율성만으로 경쟁합니다.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 제공 자료 -->
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3><span class="icon">&#x1F4E6;</span> 제공 자료</h3>
+      <div class="grid-2">
+        <div>
+          <table style="width:100%;font-size:.85rem;border-collapse:collapse">
+            <tr style="background:#e6f4ea"><th style="padding:8px;text-align:left;border-bottom:1px solid #ddd">파일/폴더</th><th style="padding:8px;text-align:left;border-bottom:1px solid #ddd">역할</th></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>ky_solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee">Koh Young 베이스라인 솔버 (컴파일 바이너리, 소스 비공개)</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee"><strong>참가자 코드 폴더</strong> — 여기에 자유롭게 작성</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>utils/checker.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">제약 조건 검증 + CT 자동 계산</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>utils/generator.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">시뮬레이션 데이터 생성기 (학습 데이터 무한 생성)</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>1_generate_data.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">시뮬레이션 데이터 생성기</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>2_run.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Solver 실행 &amp; 채점 (solver별 분리)</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>3_view.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">result.html 뷰어 생성 (solver별)</td></tr>
+            <tr><td style="padding:7px"><code>simulation_data/</code></td><td style="padding:7px">96개 데이터셋 (8 시나리오 &times; 12)</td></tr>
+          </table>
+        </div>
+        <div>
+          <div class="code-block">
+<span style="color:#6A9955"># solver/__init__.py</span>
+<span style="color:#569cd6">from</span> .my_solver <span style="color:#569cd6">import</span> solve
+
+<span style="color:#6A9955"># solver/my_solver.py (파일명 자유)</span>
+<span style="color:#569cd6">def</span> <span style="color:#dcdcaa">solve</span>(data_path: <span style="color:#4ec9b0">str</span>) -> <span style="color:#4ec9b0">int</span>:
+    <span style="color:#6A9955"># 입력: data 폴더 경로</span>
+    <span style="color:#6A9955"># 처리: FOV 배치 + 부품 할당 + 순서 결정</span>
+    <span style="color:#6A9955"># 저장: output_fov.csv</span>
+    <span style="color:#6A9955"># 반환: FOV 개수 (int)</span>
+    ...
+          </div>
+          <div class="callout callout-new" style="margin-top:8px">
+            <span class="ci">&#x2705;</span>
+            <span>generator + checker 공개로 RL/ML 등 학습 기반 접근이 가능합니다. 전통 최적화, AI, 하이브리드 어떤 방법이든 자유입니다.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 용어 사전 -->
+<div class="section" style="background:#f8f9fa" id="ko-glossary">
+  <div class="container">
+    <div class="section-title"><span class="num" style="background:var(--text2)">&#x1F4D6;</span> 용어 사전 (Glossary)</div>
+    <table class="ct-table" style="font-size:.85rem">
+      <thead><tr><th style="width:140px">용어</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><strong>AOI</strong></td><td>Automated Optical Inspection &mdash; PCB 위 전자 부품을 카메라로 자동 검사하는 장비</td></tr>
+        <tr><td><strong>PCB</strong></td><td>Printed Circuit Board &mdash; 전자 부품이 실장되는 인쇄 회로 기판</td></tr>
+        <tr><td><strong>FOV</strong></td><td>Field of View &mdash; 카메라가 한 번에 촬영하는 직사각형 영역</td></tr>
+        <tr><td><strong>CT</strong></td><td>Cycle Time &mdash; PCB 1장의 전체 검사에 소요되는 시간 (초)</td></tr>
+        <tr><td><strong>Computation Time</strong></td><td>Solver 계산 시간 (초)</td></tr>
+        <tr><td><strong>Core</strong></td><td>검사 파이프라인의 병렬 처리 단위. C0=촬상/이동, C1~C2=3D 복원, C3+=검사</td></tr>
+        <tr><td><strong>Pipeline</strong></td><td>촬상 &rarr; 3D 복원 &rarr; 검사를 여러 Core가 동시에 수행하는 병렬 구조</td></tr>
+        <tr><td><strong>Fiducial</strong></td><td>PCB 좌표계 원점을 정의하는 기준점 (type=2). 반드시 첫 번째 FOV에 단독 배치</td></tr>
+        <tr><td><strong>Barcode</strong></td><td>PCB 모델 구분자 (type=1). Fiducial 다음으로 검사</td></tr>
+        <tr><td><strong>Side 카메라</strong></td><td>부품 측면 납땜을 비스듬히 촬영하는 카메라. Side FOV = Top FOV의 1/2 크기</td></tr>
+        <tr><td><strong>Step (단차)</strong></td><td>PCB 위 높이가 다른 영역 (step=0, 1). 단차 전환 시 +5초 페널티</td></tr>
+        <tr><td><strong>Penalty Solver</strong></td><td>제약 위반 시 자동 실행되는 greedy 보정. CT가 크게 증가함</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="container">
+    제4회 고영 AI 경진대회 &mdash; ICCAS 2026 &mdash; AOI 검사장비 검사 시간 최적화
+  </div>
+</div>
+</div>
+
+<script>
+function openTab(e,id){
+  var grp=e.currentTarget.closest('.tab-group');
+  grp.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});
+  grp.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+  document.getElementById(id).classList.add('active');
+  e.currentTarget.classList.add('active');
+}
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('touchend',function(e){e.preventDefault();btn.click();});
+});
+</script>
+</body>
+</html>

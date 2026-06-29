@@ -1,0 +1,13 @@
+ky_solver_origin/
+build/
+deps/
+_build.bat
+__pycache__/
+*.pyc
+*.bin
+*.log
+.vscode/
+setup.py
+simulation_data/**/output_fov.csv
+simulation_data/*/*/
+summary_*.csv
