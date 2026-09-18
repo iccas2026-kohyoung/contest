@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
     <a href="ICCAS_2026_CONTEST_DATA_DESCRIPTION.html" class="nav-link" data-doc="Data Description" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Data Description</a>
     <a href="ICCAS_2026_CONTEST_GUIDE.html" class="nav-link" data-doc="Guide" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#fff;background:#1a73e8;transition:all .2s">Guide</a>
     <a href="ICCAS_2026_CONTEST_TUTORIAL.html" class="nav-link" data-doc="Tutorial" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Tutorial</a>
+    <a href="ICCAS_2026_CONTEST_QA.html" class="nav-link" data-doc="Q&A" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Q&A</a>
     <a href="https://github.com/iccas2026-kohyoung/contest" class="nav-link" target="_blank" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">GitHub ↗</a>
   </div>
 </div>
@@ -148,7 +149,7 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
 <div class="section" style="background:#fff" id="s0">
   <div class="container">
     <div class="section-title"><span class="num" style="background:var(--green)">&#x26A1;</span> Quick Start &mdash; Get Started in 5 Minutes</div>
-    <div class="section-desc">It may look complicated, but what you actually need to do is simple. <strong>Write your code in the <code>solver/</code> folder</strong>.</div>
+    <div class="section-desc">It may look complicated, but what you actually need to do is simple. <strong>Copy <code>my_solver/</code> to your team name and write your code there</strong>.</div>
 
     <!-- Step 1: Installation -->
     <div class="card" style="border-left:4px solid var(--green)">
@@ -166,7 +167,10 @@ pip install -r requirements.txt</div>
 python 1_generate_data.py
 
 <span style="color:#6A9955"># Run baseline solver on all data -> check CT</span>
-python 2_run.py --solver greedy</div>
+python 2_run.py --solver greedy
+
+<span style="color:#6A9955"># Run YOUR solver (use your team folder name)</span>
+python 2_run.py --solver team_alpha</div>
       <div style="margin-top:12px;font-size:.88rem;padding:12px;background:#f8f9fa;border-radius:6px;font-family:monospace;line-height:1.8">
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PCB |&nbsp; FOVs |&nbsp; Cover |&nbsp; Order |&nbsp;&nbsp; CT (s)<br>
         --------------------------------------------------<br>
@@ -178,13 +182,13 @@ python 2_run.py --solver greedy</div>
 
     <!-- Step 3: solver modification -->
     <div class="card" style="border-left:4px solid var(--accent)">
-      <h3><span class="icon">&#x2462;</span> Write Your Own Code in solver/ (This Is the Core of the Contest!)</h3>
-      <p style="font-size:.9rem;margin-bottom:12px">Create files freely inside the <code>solver/</code> folder. Just export a <code>solve</code> function from <code>solver/__init__.py</code>.</p>
+      <h3><span class="icon">&#x2462;</span> Copy my_solver/ &rarr; Your Team Name (This Is the Core of the Contest!)</h3>
+      <p style="font-size:.9rem;margin-bottom:12px">Copy the <code>my_solver/</code> folder and rename it to your team name (e.g. <code>team_alpha/</code>). Edit <code>solver.py</code> inside it. The <code>__init__.py</code> already exports <code>solve</code>.</p>
       <div class="code-block" style="font-size:.85rem">
-<span style="color:#6A9955"># solver/__init__.py</span>
-<span style="color:#569cd6">from</span> .my_solver <span style="color:#569cd6">import</span> solve
+<span style="color:#6A9955"># 1. Copy my_solver/ to your team name</span>
+cp -r my_solver/ team_alpha/
 
-<span style="color:#6A9955"># solver/my_solver.py (filename is up to you)</span>
+<span style="color:#6A9955"># 2. Edit team_alpha/solver.py</span>
 <span style="color:#569cd6">def</span> <span style="color:#dcdcaa">solve</span>(data_folder: <span style="color:#4ec9b0">str</span>) -> <span style="color:#4ec9b0">int</span>:
     <span style="color:#6A9955"># 1. Read input_component.csv, input_size.csv, input_parameter.csv</span>
     <span style="color:#6A9955"># 2. Determine FOV placement (position, count)</span>
@@ -579,11 +583,11 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open</div>
     <div class="flow" style="margin:24px 0">
       <div class="flow-step" style="background:#e6f4ea;border-color:var(--green)"><div class="step-num" style="color:var(--green)">STEP 1</div><div class="step-label">Generate Data</div><div class="step-desc">generator.py</div></div>
       <div class="flow-arrow">&#x276F;</div>
-      <div class="flow-step" style="background:#fff3e0;border-color:var(--accent)"><div class="step-num" style="color:var(--accent)">STEP 2</div><div class="step-label">Write solver/</div><div class="step-desc">FOV placement + ordering</div></div>
+      <div class="flow-step" style="background:#fff3e0;border-color:var(--accent)"><div class="step-num" style="color:var(--accent)">STEP 2</div><div class="step-label">Write Code</div><div class="step-desc">my_solver/ &rarr; team name</div></div>
       <div class="flow-arrow">&#x276F;</div>
       <div class="flow-step" style="background:#e8f0fe;border-color:var(--primary)"><div class="step-num" style="color:var(--primary)">STEP 3</div><div class="step-label">Verify &amp; Improve</div><div class="step-desc">checker.py &rarr; check CT</div></div>
       <div class="flow-arrow">&#x276F;</div>
-      <div class="flow-step" style="background:#f3e5f5;border-color:var(--purple)"><div class="step-num" style="color:var(--purple)">STEP 4</div><div class="step-label">Submit</div><div class="step-desc">Submit solver/ folder</div></div>
+      <div class="flow-step" style="background:#f3e5f5;border-color:var(--purple)"><div class="step-num" style="color:var(--purple)">STEP 4</div><div class="step-label">Submit</div><div class="step-desc">Submit team folder</div></div>
     </div>
 
   </div>
@@ -933,7 +937,7 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
 <div class="section" style="background:#fff" id="s2">
   <div class="container">
     <div class="section-title"><span class="num" style="background:var(--accent)">2</span> Contest Format &amp; Scoring</div>
-    <div class="section-desc">The problem is published first, then participants are recruited. Write your code in the <code>solver/</code> folder.</div>
+    <div class="section-desc">The problem is published first, then participants are recruited. Copy <code>my_solver/</code> to your team name and write your code there.</div>
 
     <!-- Scoring -->
     <div class="card" style="border-left:4px solid var(--accent)">
@@ -972,7 +976,7 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
             <li>All teams' code runs on the <strong>same evaluation server</strong></li>
             <li><strong>CPU Only</strong> &mdash; GPU not available</li>
             <li><strong>Time limit</strong> applied per dataset (results up to that point are used if exceeded)</li>
-            <li>Participants develop freely on their own PC; final submission is the <code>solver/</code> folder</li>
+            <li>Participants develop freely on their own PC; final submission is the team-named folder (e.g. <code>team_alpha/</code>)</li>
           </ul>
         </div>
         <div class="callout callout-warn" style="margin:0">
@@ -990,7 +994,7 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
           <table style="width:100%;font-size:.85rem;border-collapse:collapse">
             <tr style="background:#e6f4ea"><th style="padding:8px;text-align:left;border-bottom:1px solid #ddd">File / Folder</th><th style="padding:8px;text-align:left;border-bottom:1px solid #ddd">Purpose</th></tr>
             <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>ky_solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee">Koh Young baseline solver (compiled binary, source not provided)</td></tr>
-            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee"><strong>Participant code folder</strong> &mdash; write your code here freely</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>my_solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee"><strong>Starter template</strong> &mdash; copy &amp; rename to your team name</td></tr>
             <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>utils/checker.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Constraint verification + automatic CT calculation</td></tr>
             <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>utils/generator.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Simulation data generator (unlimited training data)</td></tr>
             <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>1_generate_data.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">Simulation data generator</td></tr>
@@ -1001,16 +1005,15 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
         </div>
         <div>
           <div class="code-block">
-<span style="color:#6A9955"># solver/__init__.py</span>
-<span style="color:#569cd6">from</span> .my_solver <span style="color:#569cd6">import</span> solve
+<span style="color:#6A9955"># Copy my_solver/ → team_alpha/</span>
+cp -r my_solver/ team_alpha/
 
-<span style="color:#6A9955"># solver/my_solver.py (filename is up to you)</span>
+<span style="color:#6A9955"># Edit team_alpha/solver.py</span>
 <span style="color:#569cd6">def</span> <span style="color:#dcdcaa">solve</span>(data_path: <span style="color:#4ec9b0">str</span>) -> <span style="color:#4ec9b0">int</span>:
-    <span style="color:#6A9955"># Input: data folder path</span>
-    <span style="color:#6A9955"># Process: FOV placement + component assignment + order determination</span>
-    <span style="color:#6A9955"># Save: output_fov.csv</span>
-    <span style="color:#6A9955"># Return: FOV count (int)</span>
     ...
+
+<span style="color:#6A9955"># Run</span>
+python 2_run.py --solver team_alpha
           </div>
           <div class="callout callout-new" style="margin-top:8px">
             <span class="ci">&#x2705;</span>
@@ -1073,6 +1076,7 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
     <a href="ICCAS_2026_CONTEST_DATA_DESCRIPTION.html" class="nav-link" data-doc="데이터 설명" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">데이터 설명</a>
     <a href="ICCAS_2026_CONTEST_GUIDE.html" class="nav-link" data-doc="실무가이드" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#fff;background:#1a73e8;transition:all .2s">실무가이드</a>
     <a href="ICCAS_2026_CONTEST_TUTORIAL.html" class="nav-link" data-doc="튜토리얼" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">튜토리얼</a>
+    <a href="ICCAS_2026_CONTEST_QA.html" class="nav-link" data-doc="Q&A" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">Q&A</a>
     <a href="https://github.com/iccas2026-kohyoung/contest" class="nav-link" target="_blank" style="padding:5px 14px;border-radius:16px;text-decoration:none;font-weight:600;color:#555;background:#f0f0f0;transition:all .2s">GitHub ↗</a>
   </div>
 </div>
@@ -1085,7 +1089,7 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
 <div class="section" style="background:#fff" id="ko-s0">
   <div class="container">
     <div class="section-title"><span class="num" style="background:var(--green)">&#x26A1;</span> Quick Start &mdash; 5분 안에 시작하기</div>
-    <div class="section-desc">복잡해 보이지만, 실제로 해야 할 일은 단순합니다. <strong><code>solver/</code> 폴더에 코드를 작성</strong>하면 됩니다.</div>
+    <div class="section-desc">복잡해 보이지만, 실제로 해야 할 일은 단순합니다. <strong><code>my_solver/</code>를 팀명으로 복사해서 코드를 작성</strong>하면 됩니다.</div>
 
     <!-- Step 1: 설치 -->
     <div class="card" style="border-left:4px solid var(--green)">
@@ -1103,7 +1107,10 @@ pip install -r requirements.txt</div>
 python 1_generate_data.py
 
 <span style="color:#6A9955"># 베이스라인 솔버로 전체 데이터 실행 → CT 확인</span>
-python 2_run.py --solver greedy</div>
+python 2_run.py --solver greedy
+
+<span style="color:#6A9955"># 내 솔버 실행 (팀 폴더명 사용)</span>
+python 2_run.py --solver team_alpha</div>
       <div style="margin-top:12px;font-size:.88rem;padding:12px;background:#f8f9fa;border-radius:6px;font-family:monospace;line-height:1.8">
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PCB |&nbsp; FOVs |&nbsp; Cover |&nbsp; Order |&nbsp;&nbsp; CT (s)<br>
         --------------------------------------------------<br>
@@ -1115,13 +1122,13 @@ python 2_run.py --solver greedy</div>
 
     <!-- Step 3: solver 수정 -->
     <div class="card" style="border-left:4px solid var(--accent)">
-      <h3><span class="icon">&#x2462;</span> solver/ 폴더에 나만의 코드 작성 (여기가 대회의 핵심!)</h3>
-      <p style="font-size:.9rem;margin-bottom:12px"><code>solver/</code> 폴더 안에 자유롭게 파일을 만드세요. <code>solver/__init__.py</code>에서 <code>solve</code> 함수를 export하면 됩니다.</p>
+      <h3><span class="icon">&#x2462;</span> my_solver/ &rarr; 팀명으로 복사 (여기가 대회의 핵심!)</h3>
+      <p style="font-size:.9rem;margin-bottom:12px"><code>my_solver/</code> 폴더를 팀명으로 복사하세요 (예: <code>team_alpha/</code>). 안에 있는 <code>solver.py</code>를 수정하면 됩니다. <code>__init__.py</code>가 이미 <code>solve</code>를 export합니다.</p>
       <div class="code-block" style="font-size:.85rem">
-<span style="color:#6A9955"># solver/__init__.py</span>
-<span style="color:#569cd6">from</span> .my_solver <span style="color:#569cd6">import</span> solve
+<span style="color:#6A9955"># 1. my_solver/를 팀명으로 복사</span>
+cp -r my_solver/ team_alpha/
 
-<span style="color:#6A9955"># solver/my_solver.py (파일명 자유)</span>
+<span style="color:#6A9955"># 2. team_alpha/solver.py 수정</span>
 <span style="color:#569cd6">def</span> <span style="color:#dcdcaa">solve</span>(data_folder: <span style="color:#4ec9b0">str</span>) -> <span style="color:#4ec9b0">int</span>:
     <span style="color:#6A9955"># 1. input_component.csv, input_size.csv, input_parameter.csv 읽기</span>
     <span style="color:#6A9955"># 2. FOV 배치 결정 (위치, 개수)</span>
@@ -1543,11 +1550,11 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open</div>
     <div class="flow" style="margin:24px 0">
       <div class="flow-step" style="background:#e6f4ea;border-color:var(--green)"><div class="step-num" style="color:var(--green)">STEP 1</div><div class="step-label">데이터 생성</div><div class="step-desc">generator.py</div></div>
       <div class="flow-arrow">&#x276F;</div>
-      <div class="flow-step" style="background:#fff3e0;border-color:var(--accent)"><div class="step-num" style="color:var(--accent)">STEP 2</div><div class="step-label">solver/ 작성</div><div class="step-desc">FOV 배치 + 순서</div></div>
+      <div class="flow-step" style="background:#fff3e0;border-color:var(--accent)"><div class="step-num" style="color:var(--accent)">STEP 2</div><div class="step-label">코드 작성</div><div class="step-desc">my_solver/ &rarr; 팀명</div></div>
       <div class="flow-arrow">&#x276F;</div>
       <div class="flow-step" style="background:#e8f0fe;border-color:var(--primary)"><div class="step-num" style="color:var(--primary)">STEP 3</div><div class="step-label">검증 &amp; 개선</div><div class="step-desc">checker.py → CT 확인</div></div>
       <div class="flow-arrow">&#x276F;</div>
-      <div class="flow-step" style="background:#f3e5f5;border-color:var(--purple)"><div class="step-num" style="color:var(--purple)">STEP 4</div><div class="step-label">제출</div><div class="step-desc">solver/ 폴더 제출</div></div>
+      <div class="flow-step" style="background:#f3e5f5;border-color:var(--purple)"><div class="step-num" style="color:var(--purple)">STEP 4</div><div class="step-label">제출</div><div class="step-desc">팀명 폴더 제출</div></div>
     </div>
 
   </div>
@@ -1909,7 +1916,7 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
 <div class="section" style="background:#fff" id="ko-s2">
   <div class="container">
     <div class="section-title"><span class="num" style="background:var(--accent)">2</span> 대회 형식 및 채점</div>
-    <div class="section-desc">문제를 먼저 공개하고 참가자를 모집합니다. <code>solver/</code> 폴더에 코드를 작성하면 됩니다.</div>
+    <div class="section-desc">문제를 먼저 공개하고 참가자를 모집합니다. <code>my_solver/</code>를 팀명으로 복사해서 코드를 작성하면 됩니다.</div>
 
     <!-- 채점 -->
     <div class="card" style="border-left:4px solid var(--accent)">
@@ -1948,7 +1955,7 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
             <li><strong>동일 평가 서버</strong>에서 모든 팀의 코드를 실행</li>
             <li><strong>CPU Only</strong> &mdash; GPU 사용 불가</li>
             <li>데이터당 <strong>시간 제한</strong> 적용 (초과 시 해당 시점까지의 결과 사용)</li>
-            <li>참가자는 자기 PC에서 자유롭게 개발, 최종 제출은 <code>solver/</code> 폴더</li>
+            <li>참가자는 자기 PC에서 자유롭게 개발, 최종 제출은 팀명 폴더 (예: <code>team_alpha/</code>)</li>
           </ul>
         </div>
         <div class="callout callout-warn" style="margin:0">
@@ -1966,7 +1973,7 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
           <table style="width:100%;font-size:.85rem;border-collapse:collapse">
             <tr style="background:#e6f4ea"><th style="padding:8px;text-align:left;border-bottom:1px solid #ddd">파일/폴더</th><th style="padding:8px;text-align:left;border-bottom:1px solid #ddd">역할</th></tr>
             <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>ky_solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee">Koh Young 베이스라인 솔버 (컴파일 바이너리, 소스 비공개)</td></tr>
-            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee"><strong>참가자 코드 폴더</strong> — 여기에 자유롭게 작성</td></tr>
+            <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>my_solver/</code></td><td style="padding:7px;border-bottom:1px solid #eee"><strong>시작 템플릿</strong> — 팀명으로 복사 후 수정</td></tr>
             <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>utils/checker.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">제약 조건 검증 + CT 자동 계산</td></tr>
             <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>utils/generator.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">시뮬레이션 데이터 생성기 (학습 데이터 무한 생성)</td></tr>
             <tr><td style="padding:7px;border-bottom:1px solid #eee"><code>1_generate_data.py</code></td><td style="padding:7px;border-bottom:1px solid #eee">시뮬레이션 데이터 생성기</td></tr>
@@ -1977,16 +1984,15 @@ python 3_view.py --solver greedy --dataset S00_sparse_fast_001 --open
         </div>
         <div>
           <div class="code-block">
-<span style="color:#6A9955"># solver/__init__.py</span>
-<span style="color:#569cd6">from</span> .my_solver <span style="color:#569cd6">import</span> solve
+<span style="color:#6A9955"># my_solver/ → 팀명으로 복사</span>
+cp -r my_solver/ team_alpha/
 
-<span style="color:#6A9955"># solver/my_solver.py (파일명 자유)</span>
+<span style="color:#6A9955"># team_alpha/solver.py 수정</span>
 <span style="color:#569cd6">def</span> <span style="color:#dcdcaa">solve</span>(data_path: <span style="color:#4ec9b0">str</span>) -> <span style="color:#4ec9b0">int</span>:
-    <span style="color:#6A9955"># 입력: data 폴더 경로</span>
-    <span style="color:#6A9955"># 처리: FOV 배치 + 부품 할당 + 순서 결정</span>
-    <span style="color:#6A9955"># 저장: output_fov.csv</span>
-    <span style="color:#6A9955"># 반환: FOV 개수 (int)</span>
     ...
+
+<span style="color:#6A9955"># 실행</span>
+python 2_run.py --solver team_alpha
           </div>
           <div class="callout callout-new" style="margin-top:8px">
             <span class="ci">&#x2705;</span>

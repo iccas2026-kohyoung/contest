@@ -70,18 +70,36 @@ class Checker:
         self.fov['br_x'] = self.fov['x'] + self.fov_width / 2
         self.fov['br_y'] = self.fov['y'] + self.fov_height / 2
 
-        # update fov type 
-        fov_type = [] 
-        for i, fov in self.fov.iterrows(): 
+        # fiducial FOV auto-fix: isolate fiducial, remove others, snap center
+        for i, fov in self.fov.iterrows():
+            comp_idx = json.loads(fov['comp_idx'])
+            comp_idx = [idx for idx in comp_idx if idx < len(self.component)]
+            fid_indices = [idx for idx in comp_idx if int(self.component.iloc[idx]['type']) == 2]
+            if fid_indices:
+                fid_idx = fid_indices[0]
+                comp = self.component.iloc[fid_idx]
+                cx = (comp['tl_x'] + comp['br_x']) / 2.0
+                cy = (comp['tl_y'] + comp['br_y']) / 2.0
+                self.fov.at[i, 'x'] = cx
+                self.fov.at[i, 'y'] = cy
+                self.fov.at[i, 'tl_x'] = cx - self.fov_width / 2
+                self.fov.at[i, 'tl_y'] = cy - self.fov_height / 2
+                self.fov.at[i, 'br_x'] = cx + self.fov_width / 2
+                self.fov.at[i, 'br_y'] = cy + self.fov_height / 2
+                self.fov.at[i, 'comp_idx'] = json.dumps([fid_idx])
+
+        # update fov type
+        fov_type = []
+        for i, fov in self.fov.iterrows():
             comp_idx = json.loads(self.fov.iloc[i]['comp_idx'])
-            max_type = 0 
-            for idx in comp_idx: 
+            max_type = 0
+            for idx in comp_idx:
                 if idx < len(self.component):
-                    max_type = max(max_type, self.component.iloc[idx]['type']) 
+                    max_type = max(max_type, self.component.iloc[idx]['type'])
 
-            fov_type.append(max_type) 
+            fov_type.append(max_type)
 
-        self.fov['type'] = fov_type 
+        self.fov['type'] = fov_type
 
     def is_target_fully_covered(self, rects, target): # rect: fov, target: component
         tol = 1e-5
